@@ -1,5 +1,10 @@
 import { api } from "encore.dev/api";
+import { secret } from "encore.dev/config";
 import { steamBot } from "../../utils/steam-bot";
+
+const steamUsername = secret("STEAM_USERNAME");
+const steamPassword = secret("STEAM_PASSWORD");
+const steamSharedSecret = secret("STEAM_SHARED_SECRET");
 
 interface TradeOffer {
   id: string;
@@ -42,6 +47,11 @@ export const initializeBot = api(
   { method: "POST", path: "/steam/initialize" },
   async (): Promise<{ success: boolean; message: string }> => {
     try {
+      steamBot.setCredentials({
+        username: steamUsername(),
+        password: steamPassword(),
+        sharedSecret: steamSharedSecret(),
+      });
       await steamBot.initialize();
       return {
         success: true,
@@ -58,30 +68,32 @@ export const initializeBot = api(
 
 export const getTradeOffers = api(
   { method: "GET", path: "/steam/trade-offers" },
-  async (): Promise<TradeOffer[]> => {
+  async (): Promise<{ offers: TradeOffer[] }> => {
     try {
       const offers = await steamBot.getTradeOffers();
-      return offers.map((offer) => ({
-        id: offer.id,
-        steamId: offer.partner,
-        items: offer.itemsToReceive.map((item: any) => ({
-          assetId: item.assetid || "",
-          classId: item.classid || "",
-          instanceId: item.instanceid || "",
-          appId: item.appid || 730,
-          contextId: item.contextid || "2",
-          name: item.name || "",
-          marketHashName: item.market_hash_name || "",
-          iconUrl: item.icon_url || "",
-          tradable: item.tradable || false,
-          marketable: item.marketable || false,
+      return {
+        offers: offers.map((offer) => ({
+          id: offer.id,
+          steamId: offer.partner,
+          items: offer.itemsToReceive.map((item: any) => ({
+            assetId: item.assetid || "",
+            classId: item.classid || "",
+            instanceId: item.instanceid || "",
+            appId: item.appid || 730,
+            contextId: item.contextid || "2",
+            name: item.name || "",
+            marketHashName: item.market_hash_name || "",
+            iconUrl: item.icon_url || "",
+            tradable: item.tradable || false,
+            marketable: item.marketable || false,
+          })),
+          status: "pending" as const,
+          createdAt: offer.created,
         })),
-        status: "pending" as const,
-        createdAt: offer.created,
-      }));
+      };
     } catch (error) {
       console.error("Failed to fetch trade offers:", error);
-      return [];
+      return { offers: [] };
     }
   }
 );

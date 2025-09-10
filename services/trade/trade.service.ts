@@ -80,19 +80,25 @@ export const createSellOrder = api(
 
 export const getSellOrder = api(
   { method: "GET", path: "/trade/sell-orders/:orderId" },
-  async ({ orderId }: { orderId: string }): Promise<SellOrder | null> => {
+  async ({
+    orderId,
+  }: {
+    orderId: string;
+  }): Promise<{ order: SellOrder | null }> => {
     const result = await db
       .select()
       .from(sellOrders)
       .where(eq(sellOrders.id, orderId));
 
-    if (result.length === 0) return null;
+    if (result.length === 0) return { order: null };
 
     const order = result[0];
     return {
-      ...order,
-      items: JSON.parse(order.items),
-      status: order.status as SellOrder["status"],
+      order: {
+        ...order,
+        items: JSON.parse(order.items),
+        status: order.status as SellOrder["status"],
+      },
     };
   }
 );
@@ -102,7 +108,7 @@ export const verifyTrade = api(
   async (
     req: VerifyTradeRequest
   ): Promise<{ valid: boolean; reason?: string }> => {
-    const order = await getSellOrder({ orderId: req.orderId });
+    const { order } = await getSellOrder({ orderId: req.orderId });
 
     if (!order) {
       return { valid: false, reason: "Sell order not found" };
@@ -178,18 +184,20 @@ export const updateOrderStatus = api(
 
 export const getUserSellOrders = api(
   { method: "GET", path: "/trade/users/:userId/sell-orders" },
-  async ({ userId }: { userId: string }): Promise<SellOrder[]> => {
+  async ({ userId }: { userId: string }): Promise<{ orders: SellOrder[] }> => {
     const result = await db
       .select()
       .from(sellOrders)
       .where(eq(sellOrders.userId, userId))
       .orderBy(desc(sellOrders.createdAt));
 
-    return result.map((order) => ({
-      ...order,
-      items: JSON.parse(order.items),
-      status: order.status as SellOrder["status"],
-    }));
+    return {
+      orders: result.map((order) => ({
+        ...order,
+        items: JSON.parse(order.items),
+        status: order.status as SellOrder["status"],
+      })),
+    };
   }
 );
 

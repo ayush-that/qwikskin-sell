@@ -1,9 +1,3 @@
-import { secret } from "encore.dev/config";
-
-const steamUsername = secret("STEAM_USERNAME");
-const steamPassword = secret("STEAM_PASSWORD");
-const steamSharedSecret = secret("STEAM_SHARED_SECRET");
-
 let SteamUser: any;
 let TradeOfferManager: any;
 let SteamTotp: any;
@@ -46,8 +40,21 @@ class SteamBotManager {
   private client: any;
   private manager: any;
   private isLoggedIn: boolean = false;
+  private credentials: {
+    username: string;
+    password: string;
+    sharedSecret?: string;
+  } | null = null;
 
   constructor() {}
+
+  setCredentials(credentials: {
+    username: string;
+    password: string;
+    sharedSecret?: string;
+  }) {
+    this.credentials = credentials;
+  }
 
   async initialize(): Promise<void> {
     try {
@@ -97,15 +104,21 @@ class SteamBotManager {
   }
 
   private async login(): Promise<void> {
+    if (!this.credentials) {
+      throw new Error("Credentials not set. Call setCredentials() first.");
+    }
+
+    const credentials = this.credentials;
+
     return new Promise((resolve, reject) => {
       const loginOptions: any = {
-        accountName: steamUsername(),
-        password: steamPassword(),
+        accountName: credentials.username,
+        password: credentials.password,
       };
 
-      if (steamSharedSecret()) {
+      if (credentials.sharedSecret) {
         loginOptions.twoFactorCode = SteamTotp.generateAuthCode(
-          steamSharedSecret()
+          credentials.sharedSecret
         );
       }
 

@@ -79,20 +79,20 @@ export const authenticateWithSteam = api(
 
 export const getUser = api(
   { method: "GET", path: "/auth/users/:userId" },
-  async ({ userId }: { userId: string }): Promise<User | null> => {
+  async ({ userId }: { userId: string }): Promise<{ user: User | null }> => {
     const result = await db.select().from(users).where(eq(users.id, userId));
-    return result.length > 0 ? result[0] : null;
+    return { user: result.length > 0 ? result[0] : null };
   }
 );
 
 export const getUserBySteamId = api(
   { method: "GET", path: "/auth/steam/:steamId" },
-  async ({ steamId }: { steamId: string }): Promise<User | null> => {
+  async ({ steamId }: { steamId: string }): Promise<{ user: User | null }> => {
     const result = await db
       .select()
       .from(users)
       .where(eq(users.steamId, steamId));
-    return result.length > 0 ? result[0] : null;
+    return { user: result.length > 0 ? result[0] : null };
   }
 );
 
@@ -115,7 +115,7 @@ export const updateUser = api(
 
     await db.update(users).set(updateData).where(eq(users.id, req.userId));
 
-    const updatedUser = await getUser({ userId: req.userId });
+    const { user: updatedUser } = await getUser({ userId: req.userId });
 
     return {
       success: true,
@@ -131,7 +131,7 @@ export const validateUserForSelling = api(
   }: {
     userId: string;
   }): Promise<{ canSell: boolean; reason?: string }> => {
-    const user = await getUser({ userId });
+    const { user } = await getUser({ userId });
 
     if (!user) {
       return { canSell: false, reason: "User not found" };
