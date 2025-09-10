@@ -1,0 +1,4244 @@
+---
+alwaysApply: false
+---
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.1 - Introduction/README.md
+
+# Chapter 1.1 - Introduction
+
+Steam bots can be used for many things:
+
+- Donation Bots
+- Chat bots
+- Trade bots (in steam or connected to a website)
+
+Websites like scrap.tf, cs.money or csgojackpot.com all use some sort of steam bot
+
+In this course, you will learn how to create everything from chat
+bots to fully-functioning trade websites.
+
+[Continue Reading](../Chapter%201.2%20-%20Prerequisites)
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.2 - Prerequisites/README.md
+
+# Chapter 1.2 - Prerequisites
+
+Before actually beginning to write your code, make sure you have the following
+prerequisites installed:
+
+- [Node.js and NPM](https://nodejs.org/en/)
+- [`steam-user`](https://www.npmjs.com/package/steam-user) (`npm install
+steam-user`) - module which helps facilitate communications with Steam servers
+- [`steam-totp`](https://www.npmjs.com/package/steam-totp) (`npm install steam-totp`) - module for generating Steam Guard codes
+  - [View Chapter 1.4](../Chapter%201.4%20-%20TOTP#chapter-14) if your bot requires generating Steam Guard codes
+
+We'll start adding more Node modules (which you install by using NPM) as the
+need arises.
+
+[Continue Reading](../Chapter%201.3%20-%20Starting%20to%20Code)
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.3 - Starting to Code/config.json
+
+{
+"username": "",
+"password": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.3 - Starting to Code/project1.js
+
+const SteamUser = require('steam-user');
+const client = new SteamUser();
+const config = require('./config.json');
+
+const logOnOptions = {
+accountName: config.username,
+password: config.password
+};
+
+client.logOn(logOnOptions);
+
+client.on('loggedOn', () => {
+console.log('Logged into Steam!');
+
+client.setPersona(SteamUser.EPersonaState.Online);
+client.gamesPlayed(440);
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.3 - Starting to Code/README.md
+
+# Chapter 1.3 - Starting to Code
+
+Once we have our prerequisites installed, we can begin writing the code
+necessary to login to Steam and simulate the Steam client. First of all, let's
+create a new file and call it `project1.js`. Inside this file, we'll write out
+the following code.
+
+```js
+const SteamUser = require("steam-user");
+const client = new SteamUser();
+
+const logOnOptions = {
+  accountName: "your_steam_username",
+  password: "your_steam_password",
+};
+
+client.logOn(logOnOptions);
+
+client.on("loggedOn", () => {
+  console.log("Logged into Steam");
+});
+```
+
+Now, run the program using `node project1.js`. If you get an error, checkout
+the troubleshooting section on the main README. If everything works out fine,
+you should be prompted for your 2FA code (if you have 2FA setup on your
+account), then you should see the "Logged into Steam" message appear in your
+command line.
+
+Now let's walk through how this code works step-by-step.
+
+### Modules
+
+At the top of our program, we see:
+
+```js
+const SteamUser = require("steam-user");
+const client = new SteamUser();
+```
+
+Here, we are `require`ing the `steam-user` module that we previously installed
+using NPM, and create a new instance named `client` with `new SteamUser()`. We
+could call the `SteamUser` and `client` variables whatever we want, but it's
+usually fairly standard to name them fairly closely to their module name.
+
+### Objects
+
+After `require`ing our modules and creating instances, we define a new object.
+
+```js
+const logOnOptions = {
+  accountName: "your_steam_username",
+  password: "your_steam_password",
+};
+```
+
+This `logOnOptions` object is what we'll use to store our `accountName` and
+`password` as "keys" within the object.
+
+### Methods
+
+```js
+client.logOn(logOnOptions);
+```
+
+We then pass this `logOnOptions` object as a parameter to the `logOn` method of
+our `client`, which is, again, an instance of `SteamUser`. In other words,
+we're telling our `SteamUser` instance to login to the Steam network using our
+username and password.
+
+A method is simply some code in the module which we can
+use by referencing its name – in this case, `logOn`. We can tell the method to
+take some input from us by giving it parameters – the stuff inside of the
+parentheses.
+
+### Events
+
+We then proceed to adding an event listener.
+
+```js
+client.on("loggedOn", () => {
+  console.log("Logged into Steam");
+});
+```
+
+The `on` method takes two parameters – an event name and a function. When the
+`client` emits an event whose name matches the event name we have specified
+in the `on` method, the function we provide will be executed.
+
+When `client` emits an event called `loggedOn`, we tell it to execute a
+function, defined in this case using an arrow function. Using an arrow
+function, or `() => { ... }`, is _almost_ this same as using `function()`, but
+there are some very important differences. We'll get into these differences as
+they come up. Inside of our function, we tell Node.js to log "Logged into
+Steam" to our command line.
+
+---
+
+Great! We've created our first Steam bot – but it doesn't really do much. It's
+a little disappointing to login to Steam but get no reward – we don't even
+change our status to online! Well, we can easily make that change. Let's add
+some code onto our beautifully simple bot.
+
+We're going to add some code to the `loggedOn` event listener to make it change
+its status to online and start playing some good ol' Team Fortress 2.
+
+```js
+client.on("loggedOn", () => {
+  console.log("Logged into Steam");
+
+  client.setPersona(SteamUser.EPersonaState.Online);
+  client.gamesPlayed(440);
+});
+```
+
+If we run the file now using `node project1.js`, we should see "Logged into
+Steam" in the command line again, but now if we check our Steam profile, we
+should be online and playing TF2.
+
+These two lines are all we need to have our bot change its status to online and
+start playing TF2. The `setPersona` method can take two parameters, the first
+being an [EPersonaState constant](https://github.com/DoctorMcKay/node-steam-user/blob/master/enums/EPersonaState.js),
+and the second being a persona name. The persona name is not required, but can
+be set if you would like to change your Steam name. For example, we could use:
+
+```js
+client.setPersona(SteamUser.EPersonaState.Online, "andrewda");
+```
+
+to change our Steam name to "andrewda". The `gamesPlayed` method takes one
+parameter – a Steam game's appid or a string for a non-Steam game. It can also
+be used to idle in multiple games at the same time, but we won't get into that
+during this guide. Do note that you must have the game in order to play it,
+unless the game is free like TF2.
+
+[Continue Reading](../Chapter%201.4%20-%20TOTP)
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.4 - TOTP/config.json
+
+{
+"username": "",
+"password": "",
+"sharedSecret": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.4 - TOTP/project1.js
+
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const config = require('./config.json');
+
+const client = new SteamUser();
+
+const logOnOptions = {
+accountName: config.username,
+password: config.password,
+twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
+};
+
+client.logOn(logOnOptions);
+
+client.on('loggedOn', () => {
+console.log('Logged into Steam');
+
+client.setPersona(SteamUser.EPersonaState.Online);
+client.gamesPlayed(440);
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.4 - TOTP/README.md
+
+# Chapter 1.4 - Steam TOTP
+
+As you probably already know, Steam has made 2FA mandatory now. This can
+fortunately be automatized using the [`steam-totp`](https://github.com/DoctorMcKay/node-steam-totp)
+module. Again, this can be installed using `npm install steam-totp`.
+
+Then we're going to add a couple lines to our script. It will look like this
+when completed:
+
+```js
+const SteamUser = require("steam-user");
+const SteamTotp = require("steam-totp");
+
+const client = new SteamUser();
+
+const logOnOptions = {
+  accountName: "your_steam_username",
+  password: "your_steam_password",
+  twoFactorCode: SteamTotp.generateAuthCode("your_steam_shared_secret"),
+};
+
+client.logOn(logOnOptions);
+
+client.on("loggedOn", () => {
+  console.log("Logged into Steam");
+
+  client.setPersona(SteamUser.EPersonaState.Online);
+  client.gamesPlayed(440);
+});
+```
+
+If done correctly, running `node project1.js` will now automatically make the
+bot login without the need of manually entering the code.
+
+Now let's go through what we added step-by-step. We added two important lines
+to our file:
+
+```js
+const SteamTotp = require('steam-totp');
+
+[...]
+
+const logOnOptions = {
+	[...]
+	twoFactorCode: SteamTotp.generateAuthCode('your_steam_shared_secret')
+};
+```
+
+The first line we added `require`s the `steam-totp` module, while the second
+line generates our 2FA code using Steam's TOTP algorithm using your shared
+secret code. This is added as a key to the `logOnOptions` object.
+
+## How To Find Your Secrets
+
+You might be wondering where to find the shared secret and there are actually
+many tutorials depending on your device. If you are on iPhone you can try
+[this](http://forums.backpack.tf/index.php?/topic/45995-guide-how-to-get-your-shared-secret-from-ios-device-steam-mobile/)
+method, while if you are using an Android you can try [this](https://www.reddit.com/r/SteamBot/comments/3w5zwb/info_get_your_2fa_codes_from_android_no_root/)
+tutorial. All that you have to know is that the shared secret is used to
+generate your 2FA login code, while the identity secret is used for trade and
+market confirmations. We will use the identity secret later on when it becomes
+necessary. Remember to never share these secrets with anyone as they could
+easily sabotage your account.
+
+[Continue Reading](../Chapter%201.5%20-%20Errors)
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/Chapter 1.5 - Errors/README.md
+
+# Chapter 1.5 - Errors
+
+Errors are an inevitable part of programming. You will face them. And it will
+suck. I speak from experience – it really does suck to get errors after working
+day and night on some beautiful code. Luckily, though, we not only have the
+entire internet at our disposal to search for people who have faced similar
+issues, but also a handy quick cheatsheet right here.
+
+If you receive random Steam issues, checkout the huge list of Steam error codes
+at [steamerrors.com](https://steamerrors.com).
+
+### "Cannot find module: THE_MODULE_NAME"
+
+If you get this error, you have most likely installed the given module
+incorrectly. Try reinstalling it by typing `npm install THE_MODULE_NAME` again.
+
+### "Error: InvalidPassword"
+
+This means you have likely specified an incorrect `accountName` or `password`.
+Try re-entering them and make sure they work when logging into the Steam
+client.
+
+This error can also be caused by passing in a `twoFactorCode` when your bot does
+not have 2FA enabled.
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/package.json
+
+{
+"name": "project1",
+"version": "1.0.0",
+"license": "CC-BY-4.0",
+"dependencies": {
+"steam-totp": "^2.0.1",
+"steam-user": "^3.21.7"
+}
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 1 - Basics/README.md
+
+# Chapter 1 - Basics
+
+## Table of Contents
+
+- [Chapter 1.1 - Introduction](./Chapter%201.1%20-%20Introduction)
+- [Chapter 1.2 - Prerequisites](./Chapter%201.2%20-%20Prerequisites)
+- [Chapter 1.3 - Starting to Code](./Chapter%201.3%20-%20Starting%20to%20Code)
+- [Chapter 1.4 - TOTP](./Chapter%201.4%20-%20TOTP)
+- [Chapter 1.5 - Errors](./Chapter%201.5%20-%20Errors)
+
+## Summary
+
+In this chapter, we'll learn about how to create a very basic Steam bot which
+can login to the Steam servers and act like it's playing TF2.
+
+## Authors
+
+This chapter was written by [@andrewda](https://github.com/andrewda) and
+[@Fedzero](https://github.com/Fedzero).
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.1 - Prerequisites/README.md
+
+# Chapter 2.1 - Prerequisites
+
+We'll need to add some more modules before getting started with trading. We'll
+install the following modules using NPM, just as we did with `steam-user` in
+[Chapter 1.2](../../Chapter%201%20-%20Basics/Chapter%201.2%20-%20Prerequisites).
+
+- [`steam-tradeoffer-manager`](https://www.npmjs.com/package/steam-tradeoffer-manager)
+- [`steamcommunity`](https://www.npmjs.com/package/steamcommunity)
+
+[Continue Reading](../Chapter%202.2%20-%20Handling%20Trade%20Offers)
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.2 - Handling Trade Offers/config.json
+
+{
+"username": "",
+"password": "",
+"sharedSecret": "",
+"idSecret": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.2 - Handling Trade Offers/project2.js
+
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const SteamCommunity = require('steamcommunity');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+const config = require('./config.json');
+
+const client = new SteamUser();
+const community = new SteamCommunity();
+const manager = new TradeOfferManager({
+steam: client,
+community: community,
+language: 'en'
+});
+
+const logOnOptions = {
+accountName: config.username,
+password: config.password,
+twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
+};
+
+client.logOn(logOnOptions);
+
+client.on('loggedOn', () => {
+console.log('Logged into Steam');
+
+client.setPersona(SteamUser.EPersonaState.Online);
+client.gamesPlayed(440);
+});
+
+client.on('webSession', (sessionid, cookies) => {
+manager.setCookies(cookies);
+
+community.setCookies(cookies);
+community.startConfirmationChecker(10000, config.idSecret);
+});
+
+manager.on('newOffer', offer => {
+if (offer.partner.getSteamID64() === 'your_trusted_account_id') {
+offer.accept((err, status) => {
+if (err) {
+console.log(err);
+} else {
+console.log(`Accepted offer. Status: ${status}.`);
+}
+});
+} else {
+offer.decline(err => {
+if (err) {
+console.log(err);
+} else {
+console.log('Canceled offer from scammer.');
+}
+});
+}
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.2 - Handling Trade Offers/README.md
+
+# Chapter 2.2 - Handling Trade Offers
+
+To start off this chapter, let's duplicate the code we made in the previous
+chapter to a new file. Call it `project2.js`. The code we wrote in
+[Chapter 1](../../Chapter%201%20-%20Basics) will be the code we use from now
+on to create all of our bots. It will be the backbone for future bots we create.
+
+Let's begin adding some code to the top of our project, copied from
+`project1.js`.
+
+```js
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const SteamCommunity = require('steamcommunity');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+
+const client = new SteamUser();
+const community = new SteamCommunity();
+const manager = new TradeOfferManager({
+	steam: client,
+	community: community,
+	language: 'en'
+});
+
+[...]
+```
+
+Sweet. We `require`d two new modules, and created new instances for both of
+them. In addition, we passed some extra parameters to the `TradeOfferManager`
+module's constructor. We told it to use our `client` variable when it would
+like to access Steam, and our `community` when it would like to access
+the Steam Community. If we did not specify these options, a new instance of
+these modules would be created inside of our `TradeOfferModule` instance, but we
+provide our own so we can have more customizability in the future. We also tell
+TradeOfferManager to use the English language so that we can get the English
+names of items in the trade offers.
+
+Let's add some more code while we're at it.
+
+```js
+client.on("webSession", (sessionid, cookies) => {
+  manager.setCookies(cookies);
+
+  community.setCookies(cookies);
+  community.startConfirmationChecker(10000, "your_identity_secret");
+});
+```
+
+Here, we added a new event listener to the `client` instance. We're listening
+for the `webSession` event, which is emitted when we get a session id and
+cookies back from the Steam servers. Then, we pass those cookies to our
+`manager` and `community`, which will allow them to be logged into Steam as
+well. We also tell our `community` instance to start checking to see if we have
+any pending confirmations every 10 second, and accept them if we do. This
+requires you to enter your identity secret, which we address in [Chapter 1.4](../../Chapter%201%20-%20Basics/Chapter%201.4%20-%20TOTP/#how-to-find-your-secrets).
+
+Sweet, so now we have our `manager`, `client` and `community` all
+logged into Steam. Now let's try doing something with all this. We'll start by
+accepting all incoming trade offers if they come from an account we trust.
+Let's give it go.
+
+```js
+manager.on("newOffer", (offer) => {
+  if (offer.partner.getSteamID64() === "your_trusted_account_id") {
+    offer.accept((err, status) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(`Accepted offer. Status: ${status}.`);
+      }
+    });
+  }
+});
+```
+
+Alright, this was quite a bit of code, but let's go through it step-by-step.
+
+First of all, we added an event listener to our `manager`. This event listener
+listens for the `newOffer` event, which is emitted when we receive a new offer.
+Next, we check if the 64 bit Steam ID of the sender is the same as the one we
+trust. For example, I would replace `your_trusted_account_id` with
+`76561198092490523`. That long number you see is my Steam account's 64 bit
+SteamID. It's easy to find this number – it's in your Steam account's
+permalink. Mine can be seen at [steamcommunity.com/profiles/76561198092490523](https://steamcommunity.com/profiles/76561198092490523).
+
+If the two Steam ID's match, then we accept the offer using the `offer`'s
+`.accept()` method. We pass a callback to the method, and when the offer is
+accepted (or gets an error), the callback is called. If all works smoothly, you
+should see "Accepted offer. Status: pending/accepted/escrow."
+
+To test this out, run the program using `node project2.js` and use the trusted
+account to send an offer to the bot. If you don't have a second account, use a
+friend's Steam ID as the trusted account, and have them send your bot an offer.
+
+> **Note that your bot needs to have at least a $5 purchase on Steam to be eligible
+> to receive trade offers. Otherwise, the `newOffer` event will not fire.**
+
+Sure enough, when the trade gets sent, something like this should appear in
+your console:
+
+![console.png](./screenshots/console.png)
+
+Then, after giving the program enough time (should be less than ~30 seconds) to
+confirm the trade with Steam, you should see that it has been accepted on
+Steam:
+
+![trade.png](./screenshots/trade.png)
+
+Awesome! Assuming it works for you, we can move on.
+
+What if a scammer sends your bot an offer and wants to take your brand new
+Karambit Fade, or that unusual hat you had been saving up to get? Well luckily,
+we added that check to make sure that we only accept offers from the trusted
+account, but we probably don't want a bunch of offers from scammers sitting
+around, cluttering up our trade offer inbox. We can easily decline these offers
+by adding a bit more code to what we previously wrote.
+
+```js
+manager.on("newOffer", (offer) => {
+  if (offer.partner.getSteamID64() === "your_trusted_account_id") {
+    offer.accept((err, status) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(`Accepted offer. Status: ${status}.`);
+      }
+    });
+  } else {
+    offer.decline((err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("Canceled offer from scammer.");
+      }
+    });
+  }
+});
+```
+
+All we did was add an `else` statement to our Steam ID check, which uses the
+`.decline()` method of the `offer` object to decline the offer. If there is any
+sort of error, we log that error to the command line. Otherwise, we print out
+"Canceled offer from scammer."
+
+Great! You have your first simple trade offer handling program. In the next
+chapter, we'll work on sending offers to users.
+
+[Continue Reading](../Chapter%202.3%20-%20Sending%20Trade%20Offers)
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.3 - Sending Trade Offers/config.json
+
+{
+"username": "",
+"password": "",
+"sharedSecret": "",
+"idSecret": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.3 - Sending Trade Offers/project2.js
+
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const SteamCommunity = require('steamcommunity');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+const config = require('./config.json');
+
+const client = new SteamUser();
+const community = new SteamCommunity();
+const manager = new TradeOfferManager({
+steam: client,
+community: community,
+language: 'en'
+});
+
+const logOnOptions = {
+accountName: config.username,
+password: config.password,
+twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
+};
+
+client.logOn(logOnOptions);
+
+client.on('loggedOn', () => {
+console.log('Logged into Steam');
+
+client.setPersona(SteamUser.EPersonaState.Online);
+client.gamesPlayed(440);
+});
+
+client.on('webSession', (sessionid, cookies) => {
+manager.setCookies(cookies);
+
+community.setCookies(cookies);
+community.startConfirmationChecker(10000, config.idSecret);
+
+sendRandomItem();
+});
+
+manager.on('newOffer', offer => {
+if (offer.partner.getSteamID64() === 'your_trusted_account_id') {
+offer.accept((err, status) => {
+if (err) {
+console.log(err);
+} else {
+console.log(`Accepted offer. Status: ${status}.`);
+}
+});
+} else {
+offer.decline(err => {
+if (err) {
+console.log(err);
+} else {
+console.log('Canceled offer from scammer.');
+}
+});
+}
+});
+
+function sendRandomItem() {
+const partner = 'partner_steam_id';
+const appid = 440;
+const contextid = 2;
+
+const offer = manager.createOffer(partner);
+
+manager.loadInventory(appid, contextid, true, (err, myInv) => {
+if (err) {
+console.log(err);
+} else {
+const myItem = myInv[Math.floor(Math.random() * myInv.length - 1)];
+offer.addMyItem(myItem);
+
+      manager.loadUserInventory(
+        partner,
+        appid,
+        contextid,
+        true,
+        (err, theirInv) => {
+          if (err) {
+            console.log(err);
+          } else {
+            const theirItem =
+              theirInv[Math.floor(Math.random() * theirInv.length - 1)];
+            offer.addTheirItem(theirItem);
+
+            offer.setMessage(
+              `Will you trade your ${theirItem.name} for my ${myItem.name}?`
+            );
+            offer.send((err, status) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log(`Sent offer. Status: ${status}.`);
+              }
+            });
+          }
+        }
+      );
+    }
+
+});
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.3 - Sending Trade Offers/README.md
+
+# Chapter 2.3 - Sending Trade Offers
+
+Now that we know how to handle incoming trade offers, sending them shouldn't
+be too much more difficult. Let's add some more code to our `project2.js` so
+that it sends a specific user a random item from our inventory.
+
+How about we start off by fetching a random item. Think about how we might go
+about this. First, we're going to load our inventory (which is loaded as an
+array of items), then we'll choose a random number from 0 to the number of
+items we have in our inventory. We'll use that number to fetch a specific item
+from our inventory.
+
+Let's start coding. First we'll create a new function.
+
+```js
+function sendRandomItem() {
+  manager.loadInventory(440, 2, true, (err, inventory) => {
+    if (err) {
+      console.log(err);
+    } else {
+      const offer = manager.createOffer("partner_steam_id");
+      const item = inventory[Math.floor(Math.random() * inventory.length - 1)];
+
+      offer.addMyItem(item);
+      offer.setMessage(`Lucky you! You get a ${item.name}!`);
+      offer.send((err, status) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(`Sent offer. Status: ${status}.`);
+        }
+      });
+    }
+  });
+}
+```
+
+Whoa, okay, that was quite a bit of code. Let's go through what it does. When
+this function is executed, it first loads our TF2 inventory (appid `440` – if
+you want to send a random CS:GO item change this to `730`), which has a
+contextid of `2`. The next parameter we pass is whether we should only load
+tradable items – we say `true`. We then create a new offer using `manager`'s
+`.createOffer()` method. This method takes a Steam ID, so make sure you set it
+to another account which you want to send an item to. Then we choose a random
+item in our inventory and set it to the `item` variable. We add this item to
+the offer using its `.addMyItem()` method, and we set the message using
+`.setMessage()`. Then, after all that, we send the trade using `.send()`.
+
+We just need to add a little bit more code for our bot to work. We'll need to
+edit the `webSession` event listener.
+
+```js
+client.on('webSession', (sessionid, cookies) => {
+	[...]
+
+	sendRandomItem();
+});
+```
+
+This is pretty simple, it just executes the function we created above. Now,
+let's run the bot using `node project2.js`. Hopefully, you should see "Sent
+offer. Status: sent/pending." message appear in the command line.
+
+![console.png](./screenshots/console.png)
+
+You should also get a trade offer containing the random item within about 10 to
+30 seconds.
+
+![trade.png](./screenshots/trade.png)
+
+Let's add one more little feature to the bot – we should ask for one of their
+items in exchange for our's. At this point in time, we won't bother checking if
+it's a good deal or not, but we'll get into that later in a future chapter.
+
+Let's change up our code from the `sendRandomItem()` function a bit. This code
+will look pretty ugly, but we'll worry about making it more pretty in the
+future – this is a proof-of-concept.
+
+```js
+function sendRandomItem() {
+  const partner = "partner_steam_id";
+  const appid = 440;
+  const contextid = 2;
+
+  const offer = manager.createOffer(partner);
+
+  manager.loadInventory(appid, contextid, true, (err, myInv) => {
+    if (err) {
+      console.log(err);
+    } else {
+      const myItem = myInv[Math.floor(Math.random() * myInv.length - 1)];
+      offer.addMyItem(myItem);
+
+      manager.loadUserInventory(
+        partner,
+        appid,
+        contextid,
+        true,
+        (err, theirInv) => {
+          if (err) {
+            console.log(err);
+          } else {
+            const theirItem =
+              theirInv[Math.floor(Math.random() * theirInv.length - 1)];
+            offer.addTheirItem(theirItem);
+
+            offer.setMessage(
+              `Will you trade your ${theirItem.name} for my ${myItem.name}?`
+            );
+            offer.send((err, status) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log(`Sent offer. Status: ${status}.`);
+              }
+            });
+          }
+        }
+      );
+    }
+  });
+}
+```
+
+Alright so we changed this code up quite a bit. In short, we are now loading
+their inventory as well and adding their item to the trade using the
+`.addTheirItem()` method.
+
+Try running this code now and see what happens. It should create a trade
+looking something like this:
+
+![trade2.png](./screenshots/trade2.png)
+
+Nice. Obviously this will result in some pretty crazy trade offers, but again,
+we'll get into price checking in a future chapter.
+
+[Continue Reading](../Chapter%202.4%20-%20Accepting%20Donations)
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.4 - Accepting Donations/config.json
+
+{
+"username": "",
+"password": "",
+"sharedSecret": "",
+"idSecret": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.4 - Accepting Donations/project3.js
+
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const SteamCommunity = require('steamcommunity');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+const config = require('./config.json');
+
+const client = new SteamUser();
+const community = new SteamCommunity();
+const manager = new TradeOfferManager({
+steam: client,
+community: community,
+language: 'en'
+});
+
+const logOnOptions = {
+accountName: config.username,
+password: config.password,
+twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
+};
+
+client.logOn(logOnOptions);
+
+client.on('loggedOn', () => {
+console.log('Logged into Steam');
+
+client.setPersona(SteamUser.EPersonaState.Online);
+client.gamesPlayed(440);
+});
+
+client.on('webSession', (sessionid, cookies) => {
+manager.setCookies(cookies);
+
+community.setCookies(cookies);
+community.startConfirmationChecker(10000, config.idSecret);
+});
+
+manager.on('newOffer', offer => {
+if (offer.itemsToGive.length === 0) {
+offer.accept((err, status) => {
+if (err) {
+console.log(err);
+} else {
+console.log(`Donation accepted. Status: ${status}.`);
+}
+});
+} else {
+offer.decline(err => {
+if (err) {
+console.log(err);
+} else {
+console.log('Donation declined (wanted our items).');
+}
+});
+}
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/Chapter 2.4 - Accepting Donations/README.md
+
+# Chapter 2.4 - Accepting Donations
+
+Even if this part might not be vital for our bot, it is always useful to have
+something very simple which will accept all donations for us. To do this first
+we will need to identify what a donation fundamentally is: a donation is when
+the user sends us items and we do not send any items back in the trade. Knowing
+this we can use our knowledge to implement this very simple concept.
+
+Let's create a new file called `project3.js` and copy the code from
+[Chapter 2.2](../Chapter%202.2%20-%20Handling%20Trade%20Offers). We'll recode
+the `newOffer` event listener so that it will accept incoming donations.
+Delete all the code within the `newOffer` event listener and we can get started.
+
+```js
+manager.on("newOffer", (offer) => {
+  if (offer.itemsToGive.length === 0) {
+    offer.accept((err, status) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(`Donation accepted. Status: ${status}.`);
+      }
+    });
+  } else {
+    offer.decline((err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("Donation declined (wanted our items).");
+      }
+    });
+  }
+});
+```
+
+With these very simple lines we are first checking if the array which contains
+our items (`offer.itemsToGive`) contains 0 items. We are using `.length` to do
+this. This property will equal 0 only if `offer.itemsToGive` is empty or
+contains no elements. If we think about our previous definition of a donation
+then this will indeed mean that if this statement is true then the trade offer
+is a donation. If the donation is trying to take items from us, we'll decline
+that offer.
+
+Run the file using `node project3.js`. Try sending the bot an offer where you
+are giving it items, and one where you are trying to take items. The first
+should be accepted, while the second should be declined.
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/package.json
+
+{
+"name": "project3",
+"version": "1.0.0",
+"license": "CC-BY-4.0",
+"dependencies": {
+"steam-totp": "^2.0.1",
+"steam-tradeoffer-manager": "^2.8.0",
+"steam-user": "^3.21.7",
+"steamcommunity": "^3.31.0"
+}
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 2 - Trading/README.md
+
+# Chapter 2 - Trading
+
+## Table of Contents
+
+- [Chapter 2.1 - Prerequisites](./Chapter%202.1%20-%20Prerequisites)
+- [Chapter 2.2 - Handling Trade Offers](./Chapter%202.2%20-%20Handling%20Trade%20Offers)
+- [Chapter 2.3 - Sending Trade Offers](./Chapter%202.3%20-%20Sending%20Trade%20Offers)
+- [Chapter 2.4 - Accepting Donations](./Chapter%202.4%20-%20Accepting%20Donations)
+
+## Summary
+
+Great! You made it through [Chapter 1](../Chapter%201%20-%20Basics).
+This chapter is where we start to have some fun with Steam. We'll build a bot
+that handles and accepts/declines incoming trade offers. The bot will also
+send a specific user a trade with random items from both parties' inventories.
+
+## Authors
+
+This chapter was written by [@andrewda](https://github.com/andrewda) and
+[@Fedzero](https://github.com/Fedzero).
+
+---
+
+## File: node-steam-guide-master/Chapter 3 - User Interaction/Chapter 3.1 - Friend Requests/config.json
+
+{
+"username": "",
+"password": "",
+"sharedSecret": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 3 - User Interaction/Chapter 3.1 - Friend Requests/project4.js
+
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const config = require('./config.json');
+
+const client = new SteamUser();
+
+const logOnOptions = {
+accountName: config.username,
+password: config.password,
+twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
+};
+
+client.logOn(logOnOptions);
+
+client.on('loggedOn', () => {
+console.log('Logged into Steam');
+
+client.setPersona(SteamUser.EPersonaState.Online);
+client.gamesPlayed(440);
+});
+
+client.on('friendRelationship', (steamid, relationship) => {
+if (relationship === 2) {
+client.addFriend(steamid);
+client.chatMessage(steamid, 'Hello there! Thanks for adding me!');
+}
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 3 - User Interaction/Chapter 3.1 - Friend Requests/README.md
+
+# Friend Requests
+
+In this chapter, we will learn about friend requests. In the `steam-user`
+module, there is an event which is emitted every time your relationship with
+another user is changed. This event is called `friendRelationship`, and we can
+use it like so:
+
+```js
+client.on("friendRelationship", (steamid, relationship) => {
+  // Code to run when our relationship with `steamid` changes
+});
+```
+
+This listener emits two parameters along with the event: the user's steamid,
+and the new relationship status. Here is a list of the relationships:
+
+```
+None = 0,
+Blocked = 1,
+PendingInvitee = 2,
+RequestRecipient = 2, (alias of PendingInvitee)
+Friend = 3,
+RequestInitiator = 4,
+PendingInviter = 4, (alias of RequestInitiator)
+Ignored = 5,
+IgnoredFriend = 6,
+SuggestedFriend = 7
+```
+
+Now we can easily check what our new relationship with a user is, and act upon
+it. Let's consider the following code:
+
+```js
+client.on("friendRelationship", (steamid, relationship) => {
+  if (relationship === 2) {
+    // Code to run when we get a `PendingInvitee`
+  }
+});
+```
+
+If we have an event listener like the one above, the code inside of the `if`
+statement will only run if the status of the person being updated is
+`PendingInvitee`.
+
+Now, we need to add the user back and maybe say something to them. We can
+achieve this using `steam-user`'s `.addFriend()` and `.chatMessage()` methods:
+
+```js
+client.on("friendRelationship", (steamid, relationship) => {
+  if (relationship === 2) {
+    client.addFriend(steamid);
+    client.chatMessage(steamid, "Hello there! Thanks for adding me!");
+  }
+});
+```
+
+This code should work well. After starting your bot, add the bot on another
+account or have a friend add the account. You should get added back and have
+a message sent to you.
+
+Checkout `project4.js` to see the working final code.
+
+---
+
+## File: node-steam-guide-master/Chapter 3 - User Interaction/package.json
+
+{
+"name": "project4",
+"version": "1.0.0",
+"license": "CC-BY-4.0",
+"dependencies": {
+"steam-totp": "^2.0.1",
+"steam-tradeoffer-manager": "^2.8.0",
+"steam-user": "^3.21.7",
+"steamcommunity": "^3.31.0"
+}
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 3 - User Interaction/README.md
+
+# Chapter 3 - User Interaction
+
+## Table of Contents
+
+- [Chapter 3.1 - Friend Requests](./Chapter%203.1%20-%20Friend%20Requests)
+
+## Summary
+
+In this chapter, you will learn how to interact with users by sending friend
+requests, handling requests, sending messages, and dealing with various other
+interactions.
+
+## Authors
+
+This chapter was written by [@andrewda](https://github.com/andrewda) and
+[@Arze1](https://github.com/Arze1).
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.1 - Prerequisites/README.md
+
+# Chapter 4.1 - Prerequisites
+
+We're going to need a couple more things for this chapter than we did for the
+previous ones:
+
+- [`express`](https://www.npmjs.com/package/express)
+- [`express-handlebars`](https://www.npmjs.com/package/express-handlebars)
+- [`morgan`](https://www.npmjs.com/package/morgan)
+- [`socket.io`](https://www.npmjs.com/package/socket.io)
+- [`mongoose`](https://www.npmjs.com/package/mongoose)
+
+Also, we'll be needing MongoDB in this chapter, so make sure you have it
+installed. There is an installation guide for each operating systems located
+[here](https://docs.mongodb.com/manual/installation/#tutorials).
+
+We'll get more into what each module does as the chapter progresses, but just
+keep in mind that these all provide useful tools for us when we're creating our
+website.
+
+[Continue Reading](../Chapter%204.2%20-%20Base%20App)
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.2 - Base App/project5.js
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+res.send('Hello World!');
+});
+
+app.listen(3037);
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.2 - Base App/README.md
+
+# Chapter 4.2 - Base Web App
+
+Let's whip up a basic web app real quick – it shouldn't be too hard! We just
+want it to say "Hello World!" when we hit the root path. Let's begin:
+
+```js
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.listen(3037);
+```
+
+Now run it and navigate to `http://127.0.0.1:3037` in your console – you should
+get greeted with a friendly "Hello World!" message. Now let's walk through how
+this works real quick – it's not very complicated.
+
+First we create an instance of our `express` module named `app`. Then we tell
+our `app` to send a "Hello World!" message when anyone hits the root path
+(`/`). It might be a good time to note that the `req` parameter is short for
+"request", or the request sent to use by the client, while the `res` parameter
+is short for "response", or what we send back to the client. Finally, we tell
+our `app` to listen on port `3037` at the bottom.
+
+This is a very quick and dirty Express app, but we'll definitely continue
+adding on from here in order to create our final site.
+
+[Continue Reading](../Chapter%204.3%20-%20Templates)
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.3 - Templates/project5/views/main.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{{title}}</title>
+	</head>
+	<body>
+		<h1>Page: {{title}}</h1>
+		Message: {{message}}
+	</body>
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.3 - Templates/project5/app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const path = require('path');
+
+const app = express();
+const hbs = handlebars.create();
+
+app.engine('hbs', hbs.engine);
+app.set('views', path.join(\_\_dirname, 'views'));
+app.set('view engine', 'hbs');
+
+app.get('/', (req, res) => {
+res.render('main', {
+title: 'Hey There, World!',
+message: 'This is a fantastic example of Handlebars!'
+});
+});
+
+app.listen(3037);
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.3 - Templates/README.md
+
+# Chapter 4.3 - Templates
+
+Ok – we got our basic web app done in the last section, which basically sends
+us a "Hello World!" message. Pretty good, but we want to show more information
+to our users than just a sentence. For this, we'll use a templating language
+called Handlebars. There are some alternatives to Handlebars, such as EJS, but
+I happen to like Handlebars due to its simplicity, and I think you'll come to
+like it, too. Handlebars allows us to replace `{{variable}}` with a certain
+value from our Node.js app.
+
+First of all, let's create a new directory called `views`. This will be where
+all of our Handlebars templates go. Then, let's make a file inside of this
+directory and call it `main.hbs`. We'll also need to change some of the code we
+wrote earlier.
+
+```js
+const express = require("express");
+const handlebars = require("express-handlebars");
+const path = require("path");
+
+const app = express();
+const hbs = handlebars.create();
+
+app.engine("hbs", hbs.engine);
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
+
+app.get("/", (req, res) => {
+  res.render("main", {
+    title: "Hey There, World!",
+    message: "This is a fantastic example of Handlebars!",
+  });
+});
+
+app.listen(3037);
+```
+
+Alright, we changed up the code quite a bit so let's walk through some of the
+largest differences. We created a new instance of our `handlebars` module using
+`handlebars.create()`. We will later pass more options to this method in order
+to customize our `/views` directory. Then, we told our Express `app` to use the
+Handlebars engine as the default `view engine`, and we told it to look in the
+`/views` directory for different views. Finally, we told our application to
+render the `main.hbs` view instead of just a blank page. As this is less of an
+HTML tutorial, I'll explain how the following HTML/Handlebars works, but not
+future ones. It should be fairly self-explanitory.
+
+```HTML
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{{title}}</title>
+	</head>
+	<body>
+		<h1>Page: {{title}}</h1>
+		Message: {{message}}
+	</body>
+</html>
+```
+
+Here, we take the `title` variable, which we render in Express to be `'Hey
+There, World!'`. To use this `title` variable in Handlebars, we simply use
+`{{title}}`. Then we access our `message` and print it out on the screen as
+well. When we load up the page, we should be greeted with something like this:
+
+![webpage.png](./screenshots/webpage.png)
+
+Awesome! Now we know how to use basic templates on our website! We'll begin
+using these in the next section to begin making the site more dynamic.
+
+[Continue Reading](../Chapter%204.4%20-%20Databases)
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.4 - Databases/project7/models/item.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Item', {
+name: String,
+price: Number
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.4 - Databases/project7/views/main.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Item List</title>
+	</head>
+	<body>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Price</th>
+			</tr>
+			{{#each items}}
+			<tr>
+				<td>{{this.name}}</td>
+				<td>{{this.price}}</td>
+			</tr>
+			{{/each}}
+		</table>
+	</body>
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.4 - Databases/project7/app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const path = require('path');
+const mongoose = require('mongoose');
+
+const Item = require('./models/item');
+
+const app = express();
+const hbs = handlebars.create();
+
+mongoose.connect('mongodb://127.0.0.1:27017/guide');
+
+app.engine('hbs', hbs.engine);
+app.set('views', path.join(\_\_dirname, 'views'));
+app.set('view engine', 'hbs');
+
+app.get('/', (req, res) => {
+Item.find({}, (err, items) => {
+if (err) {
+console.log(err);
+}
+
+    res.render('main', { items });
+
+});
+});
+
+app.listen(3037);
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.4 - Databases/project6.js
+
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://127.0.0.1:27017/guide');
+
+const Item = mongoose.model(
+'Item',
+mongoose.Schema({
+name: String,
+price: Number
+})
+);
+
+const awpAsiimov = new Item({
+name: 'AWP | Asiimov (Field-Tested)',
+price: 27.75
+});
+
+const akRedline = new Item({
+name: 'AK-47 | Redline (Field-Tested)',
+price: 5.52
+});
+
+awpAsiimov.save((err, item) => {
+if (err) {
+console.log(err);
+} else {
+console.log(item);
+}
+});
+
+akRedline.save((err, item) => {
+if (err) {
+console.log(err);
+} else {
+console.log(item);
+}
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.4 - Databases/README.md
+
+# Chapter 4.4 - Databases
+
+Now we know how to send data to a template. That's great and all, but our site
+is still completely static. Nothing will ever change unless we mess with the
+code. Obviously, it would be very impractical for us to have to change the code
+every time something needs to be changes on our site – that should all be
+automated! But how do we go about automating something like this? That's what
+we'll be taking a look at in this section.
+
+Let's create a new file and call it something like `project6.js`:
+
+```js
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb://127.0.0.1:27017/guide");
+
+const Item = mongoose.model(
+  "Item",
+  mongoose.Schema({
+    name: String,
+    price: Number,
+  })
+);
+
+const awpAsiimov = new Item({
+  name: "AWP | Asiimov (Field-Tested)",
+  price: 27.75,
+});
+
+const akRedline = new Item({
+  name: "AK-47 | Redline (Field-Tested)",
+  price: 5.52,
+});
+
+awpAsiimov.save((err, item) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log(item);
+  }
+});
+
+akRedline.save((err, item) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log(item);
+  }
+});
+```
+
+In this block of code, we're saving two documents (the MongoDB equivalent of a
+MySQL "row") which are saved in the `Items` collection (or "table" for those
+familiar with MySQL). We define what a document within the collection should
+look like by creating the `Item` model. Then we form two new Item documents by
+initializing `new Item`'s and passing in the required properties (in this case
+a `name`, which we define as a string, and a `price`, which we define as a
+number).
+
+Before running this code, make sure you've started MongoDB using the `mongod`
+command or starting the service. After running this code, you should see
+something like this appear in the console:
+
+```text
+{ __v: 0,
+  name: 'AWP | Asiimov (Field-Tested)',
+  price: 27.75,
+  _id: 585a28433124bcb7d5fd59d3 }
+{ __v: 0,
+  name: 'AK-47 | Redline (Field-Tested)',
+  price: 5.52,
+  _id: 92d1a68bb132bba3943a62e4 }
+```
+
+Fantastic! You've saved your first documents to a MongoDB collection. Now we'll
+implement it into the code we had in
+[Chapter 4.3](../Chapter%204.3%20-%20Templates). Make a new directory called
+`project7` and copy the contents of Chapter
+[Chapter 4.3](../Chapter%204.3%20-%20Templates)'s code into it. We'll be
+working with the `app.js` code:
+
+```js
+// app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const path = require('path');
+const mongoose = require('mongoose');
+
+const app = express();
+const hbs = handlebars.create();
+
+mongoose.connect('mongodb://127.0.0.1:27017/guide');
+
+const Item = mongoose.model('Item', mongoose.Schema({
+    name: String,
+	price: Number
+}));
+
+[...]
+
+app.get('/', (req, res) => {
+	Item.find({}, (err, items) => {
+		if (err) {
+			console.log(err);
+		}
+
+		res.render('main', { items });
+	});
+});
+
+app.listen(3037);
+```
+
+Here, we connected to our MongoDB server and created a new Item model. Then,
+when we get a request to `/`, we find all item documents in the Item
+collection and pass them on to the `main.hbs` template.
+
+Now we need to change the `main.hbs` template in order to process the incoming
+items data.
+
+```html
+<!-- main.hbs -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Item List</title>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+      </tr>
+      {{#each items}}
+      <tr>
+        <td>{{this.name}}</td>
+        <td>{{this.price}}</td>
+      </tr>
+      {{/each}}
+    </table>
+  </body>
+</html>
+```
+
+Here we're using the Handlebars `#each` operator, which is similar to a
+JavaScript `forEach` loop. To access each item in the loop, we use `this.prop`.
+By using `{{this.name}}`, we're accessing the `name` property of each item. At
+the beginning of this section, we saved a couple documents to our MongoDB
+database. Now, if we run this code, a table displaying all the item names and
+prices will appear. Let's give it a go. Run the `app.js` file and navigate to
+`http://127.0.0.1:3037`. You should see something like this:
+
+![webpage.png](./screenshots/webpage.png)
+
+Looks good! We now know how to access and use databases within our website.
+We'll be looking into using databases within our bots in a future chapter, but
+it's almost exactly the same.
+
+Although this is working well, it's still not very clean to define our models
+within the `app.js` file. Let's extract the model we're defining in here into a
+`models/item.js` file. Create that file now and add the following code:
+
+```js
+// models/item.js
+
+const mongoose = require("mongoose");
+
+module.exports = mongoose.model("Item", {
+  name: String,
+  price: Number,
+});
+```
+
+Now we can remove the model from `app.js` and require our new model file at the
+top of `app.js`:
+
+```js
+// app.js
+
+[...]
+
+const Item = require('./models/item');
+
+[...]
+```
+
+[Continue Reading](../Chapter%204.5%20-%20WebSockets)
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.5 - WebSockets/project8/views/main.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{{title}}</title>
+	</head>
+	<body>
+		<h1>Page: {{title}}</h1>
+		Message: {{message}}
+	</body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    	var socket = io();
+
+    	socket.on('welcome', function(msg) {
+    		alert(msg);
+    	});
+    </script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.5 - WebSockets/project8/app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const path = require('path');
+const http = require('http');
+const socket = require('socket.io');
+
+const app = express();
+const server = http.Server(app);
+const io = socket(server);
+const hbs = handlebars.create();
+
+app.engine('hbs', hbs.engine);
+app.set('views', path.join(\_\_dirname, 'views'));
+app.set('view engine', 'hbs');
+
+app.get('/', (req, res) => {
+res.render('main', {
+title: 'Hey There, World!',
+message: 'This is a fantastic example of Handlebars!'
+});
+});
+
+io.on('connection', socket => {
+console.log('a user connected');
+socket.emit('welcome', 'thanks for connecting');
+});
+
+server.listen(3037);
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/Chapter 4.5 - WebSockets/README.md
+
+# Chapter 4.5 - WebSockets
+
+We use WebSockets to easily communicate between the front-end of the website
+and the back-end. Let's say, for example, our user is on the website and has a
+list of items to choose from. When the user selects an item, we use WebSockets
+to tell the back-end that the item should be sent to the person. However, we'll
+also need to do some checks on the back-end to make sure the message from the
+front-end is legitimate, and not spoofed by a user to try to get extra items.
+We'll get into this more later, but for now just remember not to trust the
+messages from the front-end unless they've been verified.
+
+Let's copy our `project5` code from [Chapter 4.3](../Chapter%204.3%20-%20Templates) to a new folder which we'll
+title `project8`. Then we'll edit our `app.js`.
+
+```js
+// app.js
+
+const express = require("express");
+const handlebars = require("express-handlebars");
+const path = require("path");
+const http = require("http");
+const socket = require("socket.io");
+
+const app = express();
+const server = http.Server(app);
+const io = socket(server);
+const hbs = handlebars.create();
+
+app.engine("hbs", hbs.engine);
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
+
+app.get("/", (req, res) => {
+  res.render("main", {
+    title: "Hey There, World!",
+    message: "This is a fantastic example of Handlebars!",
+  });
+});
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.emit("welcome", "thanks for joining");
+});
+
+server.listen(3037);
+```
+
+Okay – a lot of changes in this first code block. First we imported Node.js's
+built-in HTTP module, which gives us more control over our server. We created a
+new server using our Express app by using `http.Server(app)`. We also imported
+our `socket.io` module and created a new Socket.io handler bound to our HTTP
+server. This allows us to access the `/socket.io/socket.io.js` route for the
+client-side Socket.io code which we'll use in a bit. It also allows us to use
+the same port as the server is hosted on instead of using up two ports – one
+for the server and one for Socket.io. When a user connects to our Socket.io
+server, we emit a welcome message with the content "thanks for joining". Then,
+we'll use that message on the front-end to alert the user.
+
+Now we'll fix up out HTML in `main.hbs`:
+
+```html
+<!-- main.hbs -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+  </head>
+  <body>
+    <h1>Page: {{title}}</h1>
+    Message: {{message}}
+  </body>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+
+    socket.on("welcome", function (msg) {
+      alert(msg);
+    });
+  </script>
+</html>
+```
+
+All we did here was import our client-side Socket.io code from
+`/socket.io/socket.io.js` and initialized a new connection using `io()`. We
+also began listening for a `welcome` message and alert the user when one is
+received.
+
+When we try this, an alert should be created with the message "thanks for
+joining".
+
+![webpage.png](./screenshots/webpage.png)
+
+We'll be using WebSockets to work with trades in our final project. When a user
+selects a trade and clicks submit, the front-end will send a message to the
+back-end, which will then send the trade offer.
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/package.json
+
+{
+"name": "project8",
+"version": "1.0.0",
+"license": "CC-BY-4.0",
+"dependencies": {
+"express": "^4.15.3",
+"express-handlebars": "^3.0.0",
+"mongoose": "^4.11.1",
+"morgan": "^1.8.2",
+"socket.io": "^2.0.3",
+"steam-totp": "^2.0.1",
+"steam-tradeoffer-manager": "^2.8.0",
+"steam-user": "^3.21.7",
+"steamcommunity": "^3.31.0"
+}
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 4 - Basics of Web Development/README.md
+
+# Chapter 4 - Basics of Web Development
+
+## Table of Contents
+
+- [Chapter 4.1 - Prerequisites](./Chapter%204.1%20-%20Prerequisites)
+- [Chapter 4.2 - Base App](./Chapter%204.2%20-%20Base%20App)
+- [Chapter 4.3 - Templates](./Chapter%204.3%20-%20Templates)
+- [Chapter 4.4 - Databases](./Chapter%204.4%20-%20Databases)
+- [Chapter 4.5 - WebSockets](./Chapter%204.5%20-%20WebSockets)
+
+## Summary
+
+Now that you have the basics of building simple Steam bots down, let's get into
+some basic web development so we can begin creating our site. We'll talk about
+how these aspects of web development will later fit into our bots as we
+progress.
+
+## Authors
+
+This chapter was written by [@andrewda](https://github.com/andrewda).
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/Chapter 5.1 - Prerequisites/README.md
+
+# Chapter 5.1 - Prerequisites
+
+The dependencies we need for this chapter mainly relate to authentication:
+
+- [`passport`](https://www.npmjs.com/package/passport)
+- [`passport-steam`](https://www.npmjs.com/package/passport-steam)
+- [`express-session`](https://www.npmjs.com/package/express-session)
+
+[Continue Reading](../Chapter%205.2%20-%20Authentication)
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/Chapter 5.2 - Authentication/project9/views/main.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Steam Login</title>
+		<style>
+		table, td, th {
+			border: 1px solid #ddd;
+			text-align: left;
+		}
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+		th, td {
+			padding: 15px;
+		}
+		td {
+			height: 40px;
+		}
+		</style>
+	</head>
+	<body>
+		{{#if user}}
+		<h1>Welcome, {{user.personaname}}!</h1>
+		<table>
+			<tr>
+				<th>Property</th>
+				<th>Value</th>
+			</tr>
+			<tr>
+				<td>Username</td>
+				<td>{{user.personaname}}</td>
+			</tr>
+			<tr>
+				<td>SteamID</td>
+				<td>{{user.steamid}}</td>
+			</tr>
+			<tr>
+				<td>Avatar</td>
+				<td><img src="{{user.avatar}}" /></td>
+			</tr>
+			<tr>
+				<td>Real Name (if set)</td>
+				<td>{{user.realname}}</td>
+			</tr>
+			<tr>
+				<td>Location (if set)</td>
+				<td>{{user.loccountrycode}}</td>
+			</tr>
+		</table>
+		<br />
+		<a href="/logout">Logout</a>
+		{{else}}
+		<a href="/auth/steam">Click here to login</a>
+		{{/if}}
+	</body>
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/Chapter 5.2 - Authentication/project9/app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const session = require('express-session');
+const passport = require('passport');
+const SteamStrategy = require('passport-steam').Strategy;
+const path = require('path');
+const config = require('./config.json');
+
+const app = express();
+const hbs = handlebars.create();
+
+passport.serializeUser((user, done) => {
+done(null, user.\_json);
+});
+
+passport.deserializeUser((obj, done) => {
+done(null, obj);
+});
+
+passport.use(
+new SteamStrategy(
+{
+returnURL: 'http://localhost:3037/auth/steam/return',
+realm: 'http://localhost:3037/',
+apiKey: config.apiKey
+},
+(identifier, profile, done) => {
+return done(null, profile);
+}
+)
+);
+
+app.engine('hbs', hbs.engine);
+app.set('views', path.join(\_\_dirname, 'views'));
+app.set('view engine', 'hbs');
+
+app.use(
+session({
+secret: config.secretString,
+name: 'U_SESSION',
+resave: true,
+saveUninitialized: true
+})
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/', (req, res) => {
+res.render('main', {
+user: req.user
+});
+});
+
+app.get(
+/^\/auth\/steam(\/return)?$/,
+passport.authenticate('steam', { failureRedirect: '/' }),
+(req, res) => {
+res.redirect('/');
+}
+);
+
+app.get('/logout', (req, res) => {
+req.logout();
+res.redirect('/');
+});
+
+app.listen(3037);
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/Chapter 5.2 - Authentication/project9/config.json
+
+{
+"apiKey": "",
+"secretString": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/Chapter 5.2 - Authentication/README.md
+
+# Chapter 5.2 - Authentication
+
+Well, now you should have the basics of web development down, so let's get into
+some more advanced topics. In this chapter, we're going to be focusing on
+authentication using Steam's API. The Steam API uses OpenID 2.0, so it might be
+nice to take a look at how that works, though it's not necessary. Basically, we
+send the user to a specific URL, they click "Login" on Steam, and finally they
+are sent back to our server with their information. You'll need to get your
+Steam API key for this section, which you can get from the developer page at
+http://steamcommunity.com/dev/apikey.
+
+Let's jump right into it. We're going to copy `project5` again from
+[Chapter 4.3](../../Chapter%204%20-%20Basics%20of%20Web%20Development/Chapter%204.3%20-%20Templates)
+and name the new folder `project9`. We'll start off by modifying the `app.js`:
+
+```js
+// app.js
+
+const express = require("express");
+const handlebars = require("express-handlebars");
+const session = require("express-session");
+const passport = require("passport");
+const SteamStrategy = require("passport-steam").Strategy;
+const path = require("path");
+
+const app = express();
+const hbs = handlebars.create();
+
+passport.serializeUser((user, done) => {
+  done(null, user._json);
+});
+
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+
+passport.use(
+  new SteamStrategy(
+    {
+      returnURL: "http://localhost:3037/auth/steam/return",
+      realm: "http://localhost:3037/",
+      apiKey: "your api key",
+    },
+    (identifier, profile, done) => {
+      return done(null, profile);
+    }
+  )
+);
+
+app.engine("hbs", hbs.engine);
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
+
+app.use(
+  session({
+    secret: "some secret string",
+    name: "U_SESSION",
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get("/", (req, res) => {
+  res.render("main", {
+    user: req.user,
+  });
+});
+
+app.get(
+  /^\/auth\/steam(\/return)?$/,
+  passport.authenticate("steam", { failureRedirect: "/" }),
+  (req, res) => {
+    res.redirect("/");
+  }
+);
+
+app.get("/logout", (req, res) => {
+  req.logout();
+  res.redirect("/");
+});
+
+app.listen(3037);
+```
+
+Alright, that was a ton of code. We'll walk through it line-by-line.
+
+First of all, we imported our new modules: `express-session`, `passport`, and
+`passport-steam`. Each of these modules has to do with authentication:
+Passport is the base authentication module, which passport-steam adds onto. The
+passport-steam module takes the user data from Steam and gives us this data. We
+save the data in a "session" using express-session. A "session" is a long hash
+used by the client which references an object – in our case the user's
+information.
+
+The next lines – `serializeUser` and `deserializeUser` – are used by Passport
+to save and access the data passed to it by passport-steam. When we start to
+create our actual application, we'll reference the database in `serializeUser`
+to get, for example, the number of credits the user has.
+
+Then we get to our `passport.use` line. Here we're telling Passport to use
+our `SteamStrategy` (aka passport-steam) and we pass it a bunch of parameters.
+First, we have `returnURL`, which is the URL that we should be sent to after
+clicking "Login" on Steam. Then we have `realm`, which is our website's URL.
+Finally we have our `apiKey` which should be pretty obvious – it's our Steam
+API key we got earlier in this section. When we successfully receive a login
+from Steam, we then pass it on by saying `done(null, profile)` – `null` meaning
+no error occurred.
+
+We also have our Express app use `session`. This allows us to save sessions to
+the client. We pass it a `secret`, `name`, `resave`, and `saveUninitialized`.
+Your `secret` should be a string that only you know, and `name` should be what
+you want the session/cookie name to be.
+
+We then added something that looks a bit similar but yet a bit confusing at the
+same time. We setup an Express route using `app.get`, but instead of passing in
+a route, we pass in regex: `/^\/auth\/steam(\/return)?$/`. This regex matches
+`/auth/steam` as well as `/auth/steam/return`. When either one of these is
+accessed, we tell Passport to try to authenticate us using Steam. If we're
+returning from Steam, Passport will pass us on and we'll get redirected to the
+`/` route due to our `res.redirect('/');` code.
+
+Finally, we added a way to logout. When the user navigates or is sent to
+`/logout`, their session is destroyed and they are sent to the main page again.
+
+Great! Hopefully you understand all this code (if you don't, feel free to
+create a GitHub issue or contact me). Now it's time to look at the front-end
+code that goes along with it. We're going to display all the user's information
+do demonstrate what we get back from Steam. Note that I added a bit of CSS to
+this code to make it look semi-nice, but I won't be explaining it because this
+guide is focussed on Steam and Node.js – not HTML and CSS.
+
+```html
+<!-- main.hbs -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Steam Login</title>
+    <style>
+      table,
+      td,
+      th {
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        padding: 15px;
+      }
+      td {
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    {{#if user}}
+    <h1>Welcome, {{user.personaname}}!</h1>
+    <table>
+      <tr>
+        <th>Property</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Username</td>
+        <td>{{user.personaname}}</td>
+      </tr>
+      <tr>
+        <td>SteamID</td>
+        <td>{{user.steamid}}</td>
+      </tr>
+      <tr>
+        <td>Avatar</td>
+        <td><img src="{{user.avatar}}" /></td>
+      </tr>
+      <tr>
+        <td>Real Name (if set)</td>
+        <td>{{user.realname}}</td>
+      </tr>
+      <tr>
+        <td>Location (if set)</td>
+        <td>{{user.loccountrycode}}</td>
+      </tr>
+    </table>
+    <br />
+    <a href="/logout">Logout</a>
+    {{else}}
+    <a href="/auth/steam">Click here to login</a>
+    {{/if}}
+  </body>
+</html>
+```
+
+Here, we make use of the Handlebars `#if` statement. If the `user` variable
+exists (i.e. the user is logged in), we display the user's information by using
+`{{user.property}}`. If the `user` variable does not exist or is undefined, we
+show the user a link to login. After logging in, the user should see their
+information on the screen which should look something like this:
+
+![webpage.png](./screenshots/webpage.png)
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/package.json
+
+{
+"name": "project9",
+"version": "1.0.0",
+"license": "CC-BY-4.0",
+"dependencies": {
+"express": "^4.15.3",
+"express-handlebars": "^3.0.0",
+"express-session": "^1.15.3",
+"mongoose": "^4.11.1",
+"morgan": "^1.8.2",
+"passport": "^0.3.2",
+"passport-steam": "^1.0.8",
+"socket.io": "^2.0.3",
+"steam-totp": "^2.0.1",
+"steam-tradeoffer-manager": "^2.8.0",
+"steam-user": "^3.21.7",
+"steamcommunity": "^3.31.0"
+}
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 5 - Advanced Web Development/README.md
+
+# Chapter 5 - Advanced Web Development
+
+## Table of Contents
+
+- [Chapter 5.1 - Prerequisites](./Chapter%205.1%20-%20Prerequisites)
+- [Chapter 5.2 - Authentication](./Chapter%205.2%20-%20Authentication)
+
+## Summary
+
+In this chapter, we'll get into more advanced web development topics, such as
+authentication and beginning to actually use our new Socket.io skills.
+
+## Authors
+
+This chapter was written by [@andrewda](https://github.com/andrewda).
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.1 - Prerequisites/README.md
+
+# Chapter 6.1 - Prerequisites
+
+The dependencies we need for this chapter:
+
+- [`passport.socketio`](https://www.npmjs.com/package/passport.socketio)
+- [`connect-mongo`](https://www.npmjs.com/package/connect-mongo)
+
+[Continue Reading](../Chapter%206.2%20-%20Getting%20Started)
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/helpers/priceUpdater.js
+
+const \_ = require('lodash');
+const request = require('request');
+
+const Price = require('../models/price');
+
+module.exports = interval => {
+update();
+
+setInterval(update, interval);
+};
+
+function update() {
+request('https://api.csgofast.com/price/all', (err, response, body) => {
+if (err) {
+console.log(err);
+} else {
+let json = {};
+
+      try {
+        json = JSON.parse(body);
+      } catch (e) {
+        console.log(e);
+      }
+
+      _.forOwn(json, (price, market_hash_name) => {
+        Price.update(
+          { market_hash_name },
+          {
+            $set: { price }
+          },
+          { upsert: true },
+          err => {
+            if (err) {
+              console.log(err);
+            }
+          }
+        );
+      });
+    }
+
+});
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/models/inventory.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Inventory', {
+steamid: String,
+updated: Number,
+items: [
+{
+market_name: String,
+assetid: String,
+image: String,
+price: Number
+}
+]
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/models/item.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Item', {
+market_hash_name: String,
+assetid: String,
+image: String,
+price: Number
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/models/price.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Price', {
+market_hash_name: String,
+price: Number
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/models/user.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('User', {
+steamid: String,
+personaname: String,
+avatar: String,
+avatarfull: String
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/public/main.js
+
+var socket = io();
+
+$(
+(function() {
+$('.deposit.item').click(function(one, two) {
+socket.emit('deposit', {
+assetid: $(this).data('assetid')
+});
+
+      alert('We will send you a tradeoffer for your ' + $(this).text());
+    });
+
+    $('.withdraw.item').click(function(one, two) {
+      socket.emit('withdraw', {
+        assetid: $(this).data('assetid')
+      });
+
+      alert('We will send you a tradeoffer with a ' + $(this).text());
+    });
+
+})()
+);
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/views/deposit.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Deposit</title>
+	</head>
+	<body>
+		<h1>Deposit Items</h1>
+		<ul>
+			{{#each items}}
+			<li class="deposit item" data-assetid="{{this.assetid}}">{{this.name}} (${{this.price}})</li>
+			{{/each}}
+		</ul>
+	</body>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/views/main.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Steam Trades</title>
+	</head>
+	<body>
+		{{#if user}}
+		<h1>Welcome, {{user.personaname}}!</h1>
+		<h3>You have {{#if user.credits}}{{user.credits}}{{else}}0{{/if}} credits</h3>
+		<a href="/deposit">Deposit</a>
+		<br />
+		<a href="/withdraw">Withdraw</a>
+		<br /><br />
+		<a href="/logout">Logout</a>
+		{{else}}
+		<a href="/auth/steam">Click here to login</a>
+		{{/if}}
+	</body>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/views/withdraw.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Withdraw</title>
+	</head>
+	<body>
+		<h1>Withdraw Items</h1>
+		<ul>
+			{{#each items}}
+			<li class="withdraw item" data-assetid="{{this.assetid}}">{{this.name}} (${{this.price}})</li>
+			{{/each}}
+		</ul>
+	</body>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const passportSocket = require('passport.socketio');
+const async = require('async');
+const passport = require('passport');
+const SteamStrategy = require('passport-steam').Strategy;
+const path = require('path');
+const mongoose = require('mongoose');
+const http = require('http');
+const socket = require('socket.io');
+const MongoStore = require('connect-mongo')(session);
+const SteamCommunity = require('steamcommunity');
+
+const Inventory = require('./models/inventory');
+const Item = require('./models/item');
+const User = require('./models/user');
+const Price = require('./models/price');
+
+const priceUpdater = require('./helpers/priceUpdater');
+
+const app = express();
+const server = http.Server(app);
+const io = socket(server);
+const hbs = handlebars.create();
+const community = new SteamCommunity();
+const sessionStore = new MongoStore({
+mongooseConnection: mongoose.connection
+});
+
+mongoose.connect('mongodb://127.0.0.1:27017/guide');
+priceUpdater(6 _ 60 _ 60 \* 1000);
+
+passport.serializeUser((user, done) => {
+User.update(
+{
+steamid: user.id
+},
+{
+$set: user.\_json
+},
+{ upsert: true },
+err => {
+done(err, user.\_json);
+}
+);
+});
+
+passport.deserializeUser((obj, done) => {
+User.findOne(
+{
+steamid: obj.steamid
+},
+(err, user) => {
+done(err, user);
+}
+);
+});
+
+passport.use(
+new SteamStrategy(
+{
+returnURL: 'http://localhost:3037/auth/steam/return',
+realm: 'http://localhost:3037/',
+apiKey: config.apiKey
+},
+(identifier, profile, done) => {
+return done(null, profile);
+}
+)
+);
+
+io.use(
+passportSocket.authorize({
+cookieParser: cookieParser,
+key: 'U_SESSION',
+secret: config.secretString,
+store: sessionStore
+})
+);
+
+io.on('connection', socket => {
+socket.on('deposit', data => {
+const user = socket.request.user;
+console.log(`${user.personaname} is depositting ${data.assetid}`);
+// we'll send the trade offer here
+});
+
+socket.on('withdraw', data => {
+const user = socket.request.user;
+console.log(`${user.personaname} is withdrawing ${data.assetid}`);
+// we'll send the trade offer here
+});
+});
+
+app.engine('hbs', hbs.engine);
+app.set('views', path.join(\_\_dirname, 'views'));
+app.set('view engine', 'hbs');
+
+app.use(
+session({
+secret: config.secretString,
+name: 'U_SESSION',
+resave: true,
+saveUninitialized: true,
+store: sessionStore
+})
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static('public'));
+app.use(cookieParser());
+
+app.get('/', (req, res) => {
+res.render('main', {
+user: req.user
+});
+});
+
+app.get('/deposit', (req, res) => {
+if (req.user) {
+Inventory.findOne(
+{
+steamid: req.user.steamid
+},
+(err, inv) => {
+if (inv && Date.now() - inv.updated < 6 _ 60 _ 60 \* 1000) {
+res.render('deposit', {
+user: req.user,
+items: inv.items
+});
+} else {
+community.getUserInventoryContents(
+req.user.steamid,
+730,
+2,
+true,
+(err, inv) => {
+if (err) {
+console.log(err);
+} else {
+async.map(
+inv,
+(item, done) => {
+Price.findOne(
+{
+market_hash_name: item.market_hash_name
+},
+(err, doc) => {
+item.price = doc ? doc.price : '?';
+done(null, item);
+}
+);
+},
+(err, results) => {
+Inventory.update(
+{
+steamid: req.user.steamid
+},
+{
+$set: {
+updated: Date.now(),
+items: results
+}
+},
+err => {
+if (err) {
+console.log(err);
+}
+}
+);
+
+                    res.render('deposit', {
+                      user: req.user,
+                      items: results
+                    });
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+
+} else {
+res.redirect('/auth/steam');
+}
+});
+
+app.get('/withdraw', (req, res) => {
+if (req.user) {
+Item.find({}, (err, inv) => {
+async.map(
+inv,
+(item, done) => {
+Price.findOne(
+{
+market_hash_name: item.name
+},
+(err, doc) => {
+item.price = doc ? doc.price : '?';
+done(null, item.toObject());
+}
+);
+},
+(err, results) => {
+res.render('withdraw', {
+user: req.user,
+items: results
+});
+}
+);
+});
+} else {
+res.redirect('/auth/steam');
+}
+});
+
+app.get(
+/^\/auth\/steam(\/return)?$/,
+passport.authenticate('steam', { failureRedirect: '/' }),
+(req, res) => {
+res.redirect('/');
+}
+);
+
+app.get('/logout', (req, res) => {
+req.logout();
+res.redirect('/');
+});
+
+server.listen(3037);
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/project10/config.json
+
+{
+"apiKey": "",
+"secretString": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.2 - Getting Started/README.md
+
+# Chapter 6.2 - Getting Started
+
+Our application is certainly going to need authentication, so we'll use our
+code from
+[Chapter 5.2](../../Chapter%205%20-%20Advanced%20Web%20Development/Chapter%205.2%20-%20Authentication)
+for the base. Call this new folder `project10`. Then we'll add a couple
+templates using Handlebars. First let's create a couple new views: `deposit
+.hbs` and `withdraw.hbs`:
+
+```html
+<!-- deposit.hbs -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Deposit</title>
+  </head>
+  <body>
+    <h1>Deposit Items</h1>
+    <ul>
+      {{#each items}}
+      <li class="deposit item" data-assetid="{{this.assetid}}">
+        {{this.name}} (${{this.price}})
+      </li>
+      {{/each}}
+    </ul>
+  </body>
+
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/main.js"></script>
+</html>
+```
+
+```html
+<!-- withdraw.hbs -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Withdraw</title>
+  </head>
+  <body>
+    <h1>Withdraw Items</h1>
+    <ul>
+      {{#each items}}
+      <li class="withdraw item" data-assetid="{{this.assetid}}">
+        {{this.name}} (${{this.price}})
+      </li>
+      {{/each}}
+    </ul>
+  </body>
+
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/main.js"></script>
+</html>
+```
+
+Then we'll change our `main.hbs`:
+
+```html
+<!-- main.hbs -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Steam Trades</title>
+  </head>
+  <body>
+    {{#if user}}
+    <h1>Welcome, {{user.personaname}}!</h1>
+    <h3>
+      You have {{#if user.credits}}{{user.credits}}{{else}}0{{/if}} credits
+    </h3>
+    <a href="/deposit">Deposit</a>
+    <br />
+    <a href="/withdraw">Withdraw</a>
+    <br /><br />
+    <a href="/logout">Logout</a>
+    {{else}}
+    <a href="/auth/steam">Click here to login</a>
+    {{/if}}
+  </body>
+
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/main.js"></script>
+</html>
+```
+
+Now our templates are complete, but we should create our `main.js` file in
+order to tell the back end when items are clicked. Create a new directory named
+`public` and create a `main.js` file inside of it:
+
+```js
+// main.js
+
+var socket = io();
+
+$(
+  (function () {
+    $(".deposit.item").click(function (one, two) {
+      socket.emit("deposit", {
+        assetid: $(this).data("assetid"),
+      });
+
+      alert("We will send you a tradeoffer for your " + $(this).text());
+    });
+
+    $(".withdraw.item").click(function (one, two) {
+      socket.emit("withdraw", {
+        assetid: $(this).data("assetid"),
+      });
+
+      alert("We will send you a tradeoffer with a " + $(this).text());
+    });
+  })()
+);
+```
+
+Alright, cool. This should be all the client-side JS we need for now. When a
+user clicks on an item, we'll emit an event to the server telling it that we
+want to either deposit or withdraw an item.
+
+To make this all work, we're going to need to make some additions to our
+server-side code as well. This code is going to be pretty long, so we're going
+to go ahead and break it into different sections. Each section will be in
+sequential order, but if you get a little lost, check out the full code in the
+`project10` directory here.
+
+Before starting our `app.js`, though, let's make a new directory called
+`helpers` and create a `priceUpdater.js` file. We'll use this to update prices
+periodically. You can use whatever service you would like to update prices, but
+we're going to keep it simple and use CSGOFast's API (which may not be
+completely up-to-date).
+
+```js
+// priceUpdater.js
+
+const _ = require("lodash");
+const request = require("request");
+
+const Price = require("../models/price");
+
+module.exports = (interval) => {
+  update();
+
+  setInterval(update, interval);
+};
+
+function update() {
+  request("https://api.csgofast.com/price/all", (err, response, body) => {
+    if (err) {
+      console.log(err);
+    } else {
+      let json = {};
+
+      try {
+        json = JSON.parse(body);
+      } catch (e) {
+        console.log(e);
+      }
+
+      _.forOwn(json, (price, market_hash_name) => {
+        Price.update(
+          { market_hash_name },
+          {
+            $set: { price },
+          },
+          { upsert: true },
+          (err) => {
+            if (err) {
+              console.log(err);
+            }
+          }
+        );
+      });
+    }
+  });
+}
+```
+
+Here, we're making use of `lodash` to iterate through the object of prices we
+receive back from CSGOFast, then update them in the database.
+
+We're also going to need some more database models in the `models` directory.
+We'll create three new models: `inventory.js` for the user's inventory,
+`item.js` for all the bot's items, and `price.js` to keep track of all the
+prices.
+
+```js
+// inventory.js
+
+const mongoose = require("mongoose");
+
+module.exports = mongoose.model("Inventory", {
+  steamid: String,
+  updated: Number,
+  items: [
+    {
+      market_name: String,
+      assetid: String,
+      image: String,
+      price: Number,
+    },
+  ],
+});
+```
+
+```js
+// item.js
+
+const mongoose = require("mongoose");
+
+module.exports = mongoose.model("Item", {
+  market_hash_name: String,
+  assetid: String,
+  image: String,
+  price: Number,
+});
+```
+
+```js
+// price.js
+
+const mongoose = require("mongoose");
+
+module.exports = mongoose.model("Price", {
+  market_hash_name: String,
+  price: Number,
+});
+```
+
+Now comes the good stuff. Let's start editing our `app.js` file. In a future
+section, we'll break this down into more files, but for now it will stay pretty
+large.
+
+Here, we'll start by importing our modules and initializing them.
+
+```js
+// app.js
+
+const express = require("express");
+const handlebars = require("express-handlebars");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const passportSocket = require("passport.socketio");
+const async = require("async");
+const passport = require("passport");
+const SteamStrategy = require("passport-steam").Strategy;
+const path = require("path");
+const mongoose = require("mongoose");
+const http = require("http");
+const socket = require("socket.io");
+const MongoStore = require("connect-mongo")(session);
+const SteamCommunity = require("steamcommunity");
+
+const Inventory = require("./models/inventory");
+const Item = require("./models/item");
+const User = require("./models/user");
+const Price = require("./models/price");
+
+const priceUpdater = require("./helpers/priceUpdater");
+
+const app = express();
+const server = http.Server(app);
+const io = socket(server);
+const hbs = handlebars.create();
+const community = new SteamCommunity();
+const sessionStore = new MongoStore({
+  mongooseConnection: mongoose.connection,
+});
+```
+
+Obviously we're going to be using many modules here. The uses of each new one
+will become evident once they get used.
+
+Next, we'll set up our connection to the MongoDB database, set up our price
+updater, and configure Passport as we did in the previous Chapter.
+
+```js
+// app.js (cont.)
+
+mongoose.connect("mongodb://127.0.0.1:27017/guide");
+priceUpdater(6 * 60 * 60 * 1000);
+
+passport.serializeUser((user, done) => {
+  User.update(
+    {
+      steamid: user.id,
+    },
+    {
+      $set: user._json,
+    },
+    { upsert: true },
+    (err) => {
+      done(err, user._json);
+    }
+  );
+});
+
+passport.deserializeUser((obj, done) => {
+  User.findOne(
+    {
+      steamid: obj.steamid,
+    },
+    (err, user) => {
+      done(err, user);
+    }
+  );
+});
+
+passport.use(
+  new SteamStrategy(
+    {
+      returnURL: "http://localhost:3037/auth/steam/return",
+      realm: "http://localhost:3037/",
+      apiKey: "your Steam API key",
+    },
+    (identifier, profile, done) => {
+      return done(null, profile);
+    }
+  )
+);
+```
+
+The Passport configuration should look pretty familiar – it has hardly changed
+since when we last used it. One part that has changed a little bit, though, it
+that we added a connection to the database in `serializeUser` and
+`deserializeUser` which will make our `req.user` object contain more
+information (most notably credits).
+
+Next we should configure our Socket.io server. This might look a little new:
+
+```js
+// app.js (cont.)
+
+io.use(
+  passportSocket.authorize({
+    cookieParser: cookieParser,
+    key: "U_SESSION",
+    secret: "some secret string",
+    store: sessionStore,
+  })
+);
+
+io.on("connection", (socket) => {
+  socket.on("deposit", (data) => {
+    const user = socket.request.user;
+    console.log(`${user.personaname} is depositting ${data.assetid}`);
+    // we'll send the trade offer here
+  });
+
+  socket.on("withdraw", (data) => {
+    const user = socket.request.user;
+    console.log(`${user.personaname} is withdrawing ${data.assetid}`);
+    // we'll send the trade offer here
+  });
+});
+```
+
+First we tell Socket.io to use `passport-socket`, a module to help identify
+users connecting over Socket.io. For example, if Jill makes a Socket.io request
+telling us that she wants to deposit items, we want to make sure it really is
+Jill and not Steve pretending to be Jill. This is exactly what
+`passport-socket` does. We need to pass it the same parameters as we pass our
+`express-session` below, so make sure the `key` matches the `name` below, and
+both `secret`s match.
+
+We also create a listener for each incoming connection that listens for the
+`deposit` and `withdraw` events, and logs to the console the person who is
+looking to `deposit` or `withdraw` items. In a future section, we'll use this
+space to tell our bot to send a trade offer to the specified user.
+
+Now we'll configure our Express app:
+
+```js
+// app.js (cont.)
+
+app.engine("hbs", hbs.engine);
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
+
+app.use(
+  session({
+    secret: "some secret string",
+    name: "U_SESSION",
+    resave: true,
+    saveUninitialized: true,
+    store: sessionStore,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static("public"));
+app.use(cookieParser());
+```
+
+Again, this should look pretty familiar. We added `express.static('public')`
+which serves our `public` folder statically, but that's about the only
+difference from previous chapters.
+
+Finally we'll add our routes and start the server. This might be a little
+overwhelming at first, but you should be able to grasp it.
+
+```js
+// app.js (cont.)
+
+app.get("/", (req, res) => {
+  res.render("main", {
+    user: req.user,
+  });
+});
+
+app.get("/deposit", (req, res) => {
+  if (req.user) {
+    Inventory.findOne(
+      {
+        steamid: req.user.steamid,
+      },
+      (err, inv) => {
+        if (inv && Date.now() - inv.updated > 30 * 60 * 1000) {
+          res.render("deposit", {
+            user: req.user,
+            items: inv.items,
+          });
+        } else {
+          community.getUserInventoryContents(
+            req.user.steamid,
+            730,
+            2,
+            true,
+            (err, inv) => {
+              if (err) {
+                console.log(err);
+              } else {
+                async.map(
+                  inv,
+                  (item, done) => {
+                    Price.findOne(
+                      {
+                        market_hash_name: item.market_hash_name,
+                      },
+                      (err, doc) => {
+                        item.price = doc ? doc.price : "?";
+                        done(null, item);
+                      }
+                    );
+                  },
+                  (err, results) => {
+                    Inventory.update(
+                      {
+                        steamid: req.user.steamid,
+                      },
+                      {
+                        $set: {
+                          updated: Date.now(),
+                          items: results,
+                        },
+                      },
+                      (err) => {
+                        if (err) {
+                          console.log(err);
+                        }
+                      }
+                    );
+
+                    res.render("deposit", {
+                      user: req.user,
+                      items: results,
+                    });
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+  } else {
+    res.redirect("/auth/steam");
+  }
+});
+
+app.get("/withdraw", (req, res) => {
+  if (req.user) {
+    Item.find({}, (err, inv) => {
+      async.map(
+        inv,
+        (item, done) => {
+          Price.findOne(
+            {
+              market_hash_name: item.name,
+            },
+            (err, doc) => {
+              item.price = doc ? doc.price : "?";
+              done(null, item.toObject());
+            }
+          );
+        },
+        (err, results) => {
+          res.render("withdraw", {
+            user: req.user,
+            items: results,
+          });
+        }
+      );
+    });
+  } else {
+    res.redirect("/auth/steam");
+  }
+});
+
+app.get(
+  /^\/auth\/steam(\/return)?$/,
+  passport.authenticate("steam", { failureRedirect: "/" }),
+  (req, res) => {
+    res.redirect("/");
+  }
+);
+
+app.get("/logout", (req, res) => {
+  req.logout();
+  res.redirect("/");
+});
+
+server.listen(3037);
+```
+
+Ok – let's start off by walking through our `/deposit` route. When a user
+navigates to `/deposit`, we begin by making sure the user is logged in (they
+need to be logged in to deposit items, after all). Then, if they are logged in,
+we try to find their inventory in our database, as long as it's up-to-date
+(which, in our case, means being updated within the last 30 minutes). If we
+find the user's inventory in our database and it's up to date, great, we server
+the page with the items. Otherwise, we `node-steam-community` to request the
+user's inventory from Steam, update the database, and serve the page.
+
+The only other new route we added here is the `/withdraw` route. Here, we
+verify that the user is logged in, then serve all the items in the `Items`
+collection in our database. For now, there are probably no items there, but
+we'll make sure the bot starts updating the database in the next section.
+
+You can go ahead and test this out by starting MongoDB and running
+`node app.js`. Visit http://127.0.0.1:3037 and give it a go!
+
+Your `/deposit` page should look something like this:
+
+![webpage.png](screenshots/webpage.png)
+
+And your console should have a message in it like this after clicking an item:
+
+![console.png](screenshots/console.png)
+
+[Continue Reading](../Chapter%206.3%20-%20Beginning%20the%20Connection)
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/bots/index.js
+
+const SteamUser = require('steam-user');
+const SteamCommunity = require('steamcommunity');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+const config = require('../config.json');
+
+class SteamBot {
+constructor(logOnOptions) {
+this.client = new SteamUser();
+this.community = new SteamCommunity();
+this.manager = new TradeOfferManager({
+steam: this.client,
+community: this.community,
+language: 'en'
+});
+
+    this.logOn(logOnOptions);
+
+}
+
+logOn(logOnOptions) {
+this.client.logOn(logOnOptions);
+
+    this.client.on('loggedOn', () => {
+      console.log('Logged into Steam');
+
+      this.client.setPersona(SteamUser.EPersonaState.Online);
+      this.client.gamesPlayed(730);
+    });
+
+    this.client.on('webSession', (sessionid, cookies) => {
+      this.manager.setCookies(cookies);
+
+      this.community.setCookies(cookies);
+      this.community.startConfirmationChecker(10000, config.identitySecret);
+    });
+
+}
+
+sendDepositTrade(partner, assetid, callback) {
+const offer = this.manager.createOffer(partner);
+
+    this.manager.getUserInventoryContents(partner, 730, 2, true, (err, inv) => {
+      if (err) {
+        console.log(err);
+      } else {
+        const item = inv.find(item => item.assetid == assetid);
+
+        if (item) {
+          offer.addTheirItem(item);
+          offer.setMessage('Deposit item on the website!');
+          offer.send((err, status) => {
+            callback(err, status === 'sent' || status === 'pending', offer.id);
+          });
+        } else {
+          callback(new Error('Could not find item'), false);
+        }
+      }
+    });
+
+}
+
+sendWithdrawTrade(partner, credits, assetid, callback) {
+const offer = this.manager.createOffer(partner);
+
+    this.manager.getInventoryContents(730, 2, true, (err, inv) => {
+      if (err) {
+        console.log(err);
+      } else {
+        const item = inv.find(item => item.assetid === assetid);
+
+        if (item) {
+          // Check to make sure the user can afford the item here
+
+          offer.addMyItem(item);
+          offer.setMessage('Withdraw item from the website!');
+          offer.send((err, status) => {
+            callback(err, status === 'sent' || status === 'pending', offer.id);
+          });
+        } else {
+          callback(new Error('Could not find item'), false);
+        }
+      }
+    });
+
+}
+}
+
+module.exports = SteamBot;
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/helpers/priceUpdater.js
+
+const \_ = require('lodash');
+const request = require('request');
+
+const Price = require('../models/price');
+
+module.exports = interval => {
+update();
+
+setInterval(update, interval);
+};
+
+function update() {
+request('https://api.csgofast.com/price/all', (err, response, body) => {
+if (err) {
+console.log(err);
+} else {
+let json = {};
+
+      try {
+        json = JSON.parse(body);
+      } catch (e) {
+        console.log(e);
+      }
+
+      _.forOwn(json, (price, market_hash_name) => {
+        Price.update(
+          { market_hash_name },
+          {
+            $set: { price }
+          },
+          { upsert: true },
+          err => {
+            if (err) {
+              console.log(err);
+            }
+          }
+        );
+      });
+    }
+
+});
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/models/inventory.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Inventory', {
+steamid: String,
+updated: Number,
+items: [
+{
+market_name: String,
+assetid: String,
+image: String,
+price: Number
+}
+]
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/models/item.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Item', {
+market_hash_name: String,
+assetid: String,
+image: String,
+price: Number
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/models/price.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('Price', {
+market_hash_name: String,
+price: Number
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/models/user.js
+
+const mongoose = require('mongoose');
+
+module.exports = mongoose.model('User', {
+steamid: String,
+personaname: String,
+avatar: String,
+avatarfull: String
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/public/main.js
+
+var socket = io();
+
+$(
+(function() {
+$('.deposit.item').click(function(one, two) {
+socket.emit('deposit', {
+assetid: $(this).data('assetid')
+});
+
+      alert('We will send you a tradeoffer for your ' + $(this).text());
+    });
+
+    $('.withdraw.item').click(function(one, two) {
+      socket.emit('withdraw', {
+        assetid: $(this).data('assetid')
+      });
+
+      alert('We will send you a tradeoffer with a ' + $(this).text());
+    });
+
+})()
+);
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/views/deposit.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Deposit</title>
+	</head>
+	<body>
+		<h1>Deposit Items</h1>
+		<ul>
+			{{#each items}}
+			<li class="deposit item" data-assetid="{{this.assetid}}">{{this.name}} (${{this.price}})</li>
+			{{/each}}
+		</ul>
+	</body>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/views/main.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Steam Trades</title>
+	</head>
+	<body>
+		{{#if user}}
+		<h1>Welcome, {{user.personaname}}!</h1>
+		<h3>You have {{#if user.credits}}{{user.credits}}{{else}}0{{/if}} credits</h3>
+		<a href="/deposit">Deposit</a>
+		<br />
+		<a href="/withdraw">Withdraw</a>
+		<br /><br />
+		<a href="/logout">Logout</a>
+		{{else}}
+		<a href="/auth/steam">Click here to login</a>
+		{{/if}}
+	</body>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/views/withdraw.hbs
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Withdraw</title>
+	</head>
+	<body>
+		<h1>Withdraw Items</h1>
+		<ul>
+			{{#each items}}
+			<li class="withdraw item" data-assetid="{{this.assetid}}">{{this.name}} (${{this.price}})</li>
+			{{/each}}
+		</ul>
+	</body>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
+</html>
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/app.js
+
+const express = require('express');
+const handlebars = require('express-handlebars');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const passportSocket = require('passport.socketio');
+const async = require('async');
+const passport = require('passport');
+const SteamStrategy = require('passport-steam').Strategy;
+const path = require('path');
+const mongoose = require('mongoose');
+const http = require('http');
+const socket = require('socket.io');
+const MongoStore = require('connect-mongo')(session);
+const SteamCommunity = require('steamcommunity');
+const SteamTotp = require('steam-totp');
+const config = require('./config.json');
+
+const Inventory = require('./models/inventory');
+const Item = require('./models/item');
+const User = require('./models/user');
+const Price = require('./models/price');
+
+const SteamBot = require('./bots');
+const priceUpdater = require('./helpers/priceUpdater');
+
+const app = express();
+const server = http.Server(app);
+const io = socket(server);
+const hbs = handlebars.create();
+const community = new SteamCommunity();
+const sessionStore = new MongoStore({
+mongooseConnection: mongoose.connection
+});
+const bot = new SteamBot({
+accountName: config.username,
+password: config.password,
+twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
+});
+
+mongoose.connect('mongodb://127.0.0.1:27017/guide');
+priceUpdater(6 _ 60 _ 60 \* 1000);
+
+passport.serializeUser((user, done) => {
+User.update(
+{
+steamid: user.id
+},
+{
+$set: user.\_json
+},
+{ upsert: true },
+err => {
+done(err, user.\_json);
+}
+);
+});
+
+passport.deserializeUser((obj, done) => {
+User.findOne(
+{
+steamid: obj.steamid
+},
+(err, user) => {
+done(err, user);
+}
+);
+});
+
+passport.use(
+new SteamStrategy(
+{
+returnURL: 'http://localhost:3037/auth/steam/return',
+realm: 'http://localhost:3037/',
+apiKey: config.apiKey
+},
+(identifier, profile, done) => {
+return done(null, profile);
+}
+)
+);
+
+io.use(
+passportSocket.authorize({
+cookieParser: cookieParser,
+key: 'U_SESSION',
+secret: config.secretString,
+store: sessionStore
+})
+);
+
+io.on('connection', socket => {
+socket.on('deposit', data => {
+const user = socket.request.user;
+console.log(`${user.personaname} is depositting ${data.assetid}`);
+
+    bot.sendDepositTrade(
+      user.steamid,
+      data.assetid,
+      (err, success, tradeOffer) => {
+        // TODO: Handle these events on the website
+        if (err && !success) {
+          socket.emit('failure', {
+            message: 'We could not process your request at this time.'
+          });
+        } else {
+          socket.emit('success', { tradeOffer });
+        }
+      }
+    );
+
+});
+
+socket.on('withdraw', data => {
+const user = socket.request.user;
+console.log(`${user.personaname} is withdrawing ${data.assetid}`);
+
+    bot.sendWithdrawTrade(
+      user.steamid,
+      user.credits,
+      data.assetid,
+      (err, success, tradeOffer) => {
+        // TODO: Handle these events on the website
+        if (err && !success) {
+          socket.emit('failure', {
+            message: 'We could not process your request at this time.'
+          });
+        } else {
+          socket.emit('success', { tradeOffer });
+        }
+      }
+    );
+
+});
+});
+
+app.engine('hbs', hbs.engine);
+app.set('views', path.join(\_\_dirname, 'views'));
+app.set('view engine', 'hbs');
+
+app.use(
+session({
+secret: config.secretString,
+name: 'U_SESSION',
+resave: true,
+saveUninitialized: true,
+store: sessionStore
+})
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static('public'));
+app.use(cookieParser());
+
+app.get('/', (req, res) => {
+res.render('main', {
+user: req.user
+});
+});
+
+app.get('/deposit', (req, res) => {
+if (req.user) {
+Inventory.findOne(
+{
+steamid: req.user.steamid
+},
+(err, inv) => {
+if (inv && Date.now() - inv.updated < 6 _ 60 _ 60 \* 1000) {
+res.render('deposit', {
+user: req.user,
+items: inv.items
+});
+} else {
+community.getUserInventoryContents(
+req.user.steamid,
+730,
+2,
+true,
+(err, inv) => {
+if (err) {
+console.log(err);
+} else {
+async.map(
+inv,
+(item, done) => {
+Price.findOne(
+{
+market_hash_name: item.market_hash_name
+},
+(err, doc) => {
+item.price = doc ? doc.price : '?';
+done(null, item);
+}
+);
+},
+(err, results) => {
+Inventory.update(
+{
+steamid: req.user.steamid
+},
+{
+$set: {
+updated: Date.now(),
+items: results
+}
+},
+err => {
+if (err) {
+console.log(err);
+}
+}
+);
+
+                    res.render('deposit', {
+                      user: req.user,
+                      items: results
+                    });
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+
+} else {
+res.redirect('/auth/steam');
+}
+});
+
+app.get('/withdraw', (req, res) => {
+if (req.user) {
+Item.find({}, (err, inv) => {
+async.map(
+inv,
+(item, done) => {
+Price.findOne(
+{
+market_hash_name: item.name
+},
+(err, doc) => {
+item.price = doc ? doc.price : '?';
+done(null, item.toObject());
+}
+);
+},
+(err, results) => {
+res.render('withdraw', {
+user: req.user,
+items: results
+});
+}
+);
+});
+} else {
+res.redirect('/auth/steam');
+}
+});
+
+app.get(
+/^\/auth\/steam(\/return)?$/,
+passport.authenticate('steam', { failureRedirect: '/' }),
+(req, res) => {
+res.redirect('/');
+}
+);
+
+app.get('/logout', (req, res) => {
+req.logout();
+res.redirect('/');
+});
+
+server.listen(3037, () => {
+console.log('listening');
+});
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/project10/config.json
+
+{
+"username": "",
+"password": "",
+"sharedSecret": "",
+"apiKey": "",
+"secretString": ""
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/Chapter 6.3 - Beginning the Connection/README.md
+
+# Chapter 6.3 - Beginning the Connection
+
+After the last chapter, we now have an absolutely _stunning_ website with a
+backend that "responds" to the user's actions using Socket.io. Alright, I won't
+lie, the website doesn't _actually_ look the best, but it does what it's
+supposed to, and that's what's important. In this chapter, we'll begin to
+connect the website and the bot so that when the user clicks on an item, the
+bot sends him or her a trade offer with that item. Let's get started with the
+code.
+
+We won't need to change the front-end of the website at all in this section –
+it all should work fine from the previous section. We will, however, need to
+add some bot code to our website's backend. Let's create a new directory named
+`bots`. In it, we'll make a file called `index.js`. We're going to be defining
+a Class – something new in ES6 that will make this all a lot easier. If you're
+not already familiar with ES6 Classes, you should probably read up on them
+[here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes)
+before continuing.
+
+```js
+// bots/index.js
+
+const SteamUser = require("steam-user");
+const SteamCommunity = require("steamcommunity");
+const TradeOfferManager = require("steam-tradeoffer-manager");
+```
+
+We'll start of by requiring our dependencies. We'll be using the same libraries
+we have been, so I shouldn't need to explain what each one does.
+
+```js
+// bots/index.js
+
+class SteamBot {}
+```
+
+This will be the base for our bot. It's just a vanilla class, so we should
+probably start adding to it. Let's start with a constructor.
+
+```js
+// bots/index.js
+
+class SteamBot {
+  constructor(logOnOptions) {
+    this.client = new SteamUser();
+    this.community = new SteamCommunity();
+    this.manager = new TradeOfferManager({
+      steam: this.client,
+      community: this.community,
+      language: "en",
+    });
+
+    this.logOn(logOnOptions);
+  }
+}
+```
+
+The `constructor` is called whenever someone makes a new instance of the
+`SteamBot` class. For this class, we're going to need to pass in the
+logOnOptions – `new SteamBot(logOnOptions)`. When we create a new SteamBot,
+we're going to start off by setting up internal instances of the SteamUser,
+SteamCommunity, and TradeOfferManager libraries, similarly to how we set them
+up earlier. Then we'll call the `logOn` method, which we'll define next.
+
+```js
+// bots/index.js
+
+class SteamBot {
+    constructor() { ... }
+
+    logOn(logOnOptions) {
+		this.client.logOn(logOnOptions);
+
+		this.client.on('loggedOn', () => {
+			console.log('Logged into Steam');
+
+			this.client.setPersona(SteamUser.EPersonaState.Online);
+			this.client.gamesPlayed(730);
+		});
+
+		this.client.on('webSession', (sessionid, cookies) => {
+			this.manager.setCookies(cookies);
+
+			this.community.setCookies(cookies);
+			this.community.startConfirmationChecker(10000, 'identity secret');
+		});
+	}
+}
+```
+
+This is all almost identical to what we had in earlier chapters, but just in a
+slightly new format. Next, we should define two new methods which will be used
+to send trade offers.
+
+```js
+// bots/index.js
+
+class SteamBot {
+    constructor() { ... }
+    logOn() { ... }
+
+    sendDepositTrade(partner, assetid, callback) {
+		const offer = this.manager.createOffer(partner);
+
+		this.manager.getUserInventoryContents(partner, 730, 2, true, (err, inv) => {
+			if (err) {
+				console.log(err);
+			} else {
+				const item = inv.find((item) => item.assetid == assetid);
+
+				if (item) {
+					offer.addTheirItem(item);
+					offer.setMessage('Deposit item on the website!');
+					offer.send((err, status) => {
+						callback(err, (status === 'sent' || status === 'pending'), offer.id);
+					});
+				} else {
+					callback(new Error('Could not find item'), false);
+				}
+			}
+		});
+	}
+
+	sendWithdrawTrade(partner, credits, assetid, callback) {
+		const offer = this.manager.createOffer(partner);
+
+		this.manager.getInventoryContents(730, 2, true, (err, inv) => {
+			if (err) {
+				console.log(err);
+			} else {
+				const item = inv.find((item) => item.assetid === assetid);
+
+				if (item) {
+
+					// Check to make sure the user can afford the item here
+
+					offer.addMyItem(item);
+					offer.setMessage('Withdraw item from the website!');
+					offer.send((err, status) => {
+						callback(err, (status === 'sent' || status === 'pending'), offer.id);
+					});
+				} else {
+					callback(new Error('Could not find item'), false);
+				}
+			}
+		});
+	}
+}
+```
+
+Alright – these two new methods are incredibly similar, only diverging on a
+couple lines. The `sendDepositTrade()` method will take 3 parameters, our
+partner, the item's assetid, and a callback. We start off by creating a new
+trade offer, then loading our partner's inventory with the
+`getUserInventoryContents()` method. If you remember from the earlier chapters,
+this method will include an array of items in the callback, which we will call
+`inv`. We use JavaScript's `find()` method on the `inv` array to find the item
+with the same assetid. Then, after verifying that we found an item, we add the
+item to the offer and send it.
+
+The `sendWithdrawTrade()` method will currently work almost identically to the
+previous method, but eventually we'll need to make sure that the user has
+enough credits to buy the item they're trying to withdraw.
+
+At the bottom of our `bots/index.js` file, we'll need to export our SteamBot
+class for use in other files:
+
+```js
+// bots/index.js
+
+class SteamBot {
+    constructor() { ... }
+    logOn() { ... }
+    sendDepositTrade() { ... }
+    sendWithdrawTrade() { ... }
+}
+
+module.exports = SteamBot;
+```
+
+That'll do it for now in the bot file. Let's move over to our `app.js` for some
+quick additions.
+
+```js
+// app.js
+
+[...]
+
+const SteamTotp = require('steam-totp');
+const SteamBot = require('./bots');
+
+const bot = new SteamBot({
+	accountName: 'username',
+	password: 'password',
+	twoFactorCode: SteamTotp.generateAuthCode('shared secret')
+});
+```
+
+Along with your other imports near the top of the file, you should require the
+`./bots` path in order to get the class you just made. Then, create a new
+instance of the class using `new SteamBot()` with your log on options. You'll
+also need to require the `steam-totp` if it's not already imported.
+
+Now let's actually send the offer when a user clicks on an item. We'll need to
+add some code to our Socket.io handlers.
+
+```js
+// app.js
+
+io.on("connection", (socket) => {
+  socket.on("deposit", (data) => {
+    const user = socket.request.user;
+    console.log(`${user.personaname} is depositting ${data.assetid}`);
+
+    bot.sendDepositTrade(
+      user.steamid,
+      data.assetid,
+      (err, success, tradeOffer) => {
+        // TODO: Handle these events on the website
+        if (err && !success) {
+          socket.emit("failure", {
+            message: "We could not process your request at this time.",
+          });
+        } else {
+          socket.emit("success", { tradeOffer });
+        }
+      }
+    );
+  });
+
+  socket.on("withdraw", (data) => {
+    const user = socket.request.user;
+    console.log(`${user.personaname} is withdrawing ${data.assetid}`);
+
+    bot.sendWithdrawTrade(
+      user.steamid,
+      user.credits,
+      data.assetid,
+      (err, success, tradeOffer) => {
+        // TODO: Handle these events on the website
+        if (err && !success) {
+          socket.emit("failure", {
+            message: "We could not process your request at this time.",
+          });
+        } else {
+          socket.emit("success", { tradeOffer });
+        }
+      }
+    );
+  });
+});
+```
+
+Here, we began to use the methods we just created: `bot.sendDepositTrade()` and
+`bot.sendWithdrawTrade()`. We pass in the required parameters to each, and
+supply a callback. If there's an error and the request is not successful, we'll
+emit a `failure` event. Otherwise, we'll emit the `success` event with the
+trade offer's id.
+
+In the next section, we'll handle these events on the website to provide some
+user feedback, and make sure that a user is actually allowed to withdraw a
+specific item.
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/package.json
+
+{
+"name": "project10",
+"version": "1.0.0",
+"license": "CC-BY-4.0",
+"dependencies": {
+"connect-mongo": "^1.3.2",
+"express": "^4.15.3",
+"express-handlebars": "^3.0.0",
+"express-session": "^1.15.3",
+"mongoose": "^4.11.1",
+"morgan": "^1.8.2",
+"passport": "^0.3.2",
+"passport-steam": "^1.0.8",
+"passport.socketio": "^3.7.0",
+"socket.io": "^2.0.3",
+"steam-totp": "^2.0.1",
+"steam-tradeoffer-manager": "^2.8.0",
+"steam-user": "^3.21.7",
+"steamcommunity": "^3.31.0"
+}
+}
+
+---
+
+## File: node-steam-guide-master/Chapter 6 - Connecting Sites and Bots/README.md
+
+# Chapter 6 - Connecting Sites and Bots
+
+## Table of Contents
+
+- [Chapter 6.1 - Prerequisites](./Chapter%206.1%20-%20Prerequisites)
+- [Chapter 6.2 - Getting Started](./Chapter%206.2%20-%20Getting%20Started)
+- [Chapter 6.3 - Beginning the Connection](./Chapter%206.3%20-%20Beginning%20the%20Connection)
+
+## Summary
+
+This chapter will be a ton of fun – we'll be making an application that can
+actually be used in the real world. This application will allow users to
+deposit items in order to get credits based on the item's price. These credits
+can then be used to purchase other items on the website with a slightly higher
+price in order to make profit.
+
+## Authors
+
+This chapter was written by [@andrewda](https://github.com/andrewda).

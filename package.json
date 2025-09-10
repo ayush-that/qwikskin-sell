@@ -10,6 +10,16 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "encore.dev": "^1.49.3"
+    "encore.dev": "^1.49.3",
+    "steam-user": "^4.29.0",
+    "steam-tradeoffer-manager": "^2.10.8",
+    "steam-totp": "^2.1.1",
+    "drizzle-orm": "^0.29.0",
+    "postgres": "^3.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.7",
+    "typescript": "^5.2.2",
+    "drizzle-kit": "^0.20.0"
   }
 }
