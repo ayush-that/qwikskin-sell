@@ -12,8 +12,8 @@ importers:
         specifier: ^0.29.0
         version: 0.29.5(postgres@3.4.7)
       encore.dev:
-        specifier: ^1.49.3
-        version: 1.49.3
+        specifier: ^1.50.0
+        version: 1.50.0
       postgres:
         specifier: ^3.4.3
         version: 3.4.7
@@ -610,8 +610,8 @@ packages:
   ecc-jsbn@0.1.2:
     resolution: {integrity: sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==}
 
-  encore.dev@1.49.3:
-    resolution: {integrity: sha512-7014blH0NESWGBQ0iSEjK1uDb3Yd3fT1XA/miFkPWTBGTmj26MI78f6NUEw/HfGcU5LtoA6MhwCl0icCrLB62A==}
+  encore.dev@1.50.0:
+    resolution: {integrity: sha512-ruPe2xEWOt6LXn5bGK7HArPyjcjgIyKenoXE6dVoOGMnzFfykiZ8/5r2Rc9dn01WhrvgSn2sfDIhooKdxZ+dkA==}
     engines: {node: '>=18.0.0'}
 
   entities@1.1.2:
@@ -1471,7 +1471,7 @@ snapshots:
       jsbn: 0.1.1
       safer-buffer: 2.1.2
 
-  encore.dev@1.49.3: {}
+  encore.dev@1.50.0: {}
 
   entities@1.1.2: {}
 
